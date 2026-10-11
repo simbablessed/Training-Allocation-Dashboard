@@ -16,15 +16,22 @@ const nav = [
 ] as const;
 
 export function AppHeader() {
-  const { settings, sessions, cohorts, isNeonConnected, isSyncing, refreshFromDatabase } = useTraining();
+  const { settings, sessions, cohorts, isNeonConnected, isSyncing, refreshFromDatabase, activePersona, setActivePersona } = useTraining();
   const { userEmail, userName, userRole, userPhoto } = useAppAuth();
   const { signOut } = useClerk();
   const [panel, setPanel] = useState<"search" | "notifications" | "profile" | null>(null);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
-  const displayName = userName || settings.name;
-  const displayRole = userRole || settings.role;
+  const activeRole =
+    activePersona === "Anesu Muchirewesi"
+      ? "Teacher Training Manager (Warren Park Lead)"
+      : activePersona === "Diana Dumbu"
+        ? "Resident Facilitator (Chitungwiza Hub Lab)"
+        : "Resident Facilitator (Kuwadzana Hub Lab)";
+
+  const displayName = activePersona || userName || settings.name;
+  const displayRole = activeRole;
   const avatarUrl = userPhoto || settings.photo;
 
   const conflicts = sessions.filter((s) => s.status === "Conflict");
@@ -232,6 +239,38 @@ export function AppHeader() {
                       {displayRole}
                     </span>
                   </div>
+                </div>
+              </div>
+
+              {/* Role Switcher in Profile Menu */}
+              <div className="rounded-xl border border-border/80 bg-background p-2.5 space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block px-1">
+                  Switch Active Role View
+                </span>
+                <div className="grid grid-cols-1 gap-1">
+                  {[
+                    { name: "Anesu Muchirewesi", label: "👑 Anesu (Manager · Warren Park)" },
+                    { name: "Diana Dumbu", label: "👩‍🏫 Diana (Facilitator · Chitungwiza)" },
+                    { name: "Simba", label: "👨‍🏫 Simba (Facilitator · Kuwadzana)" },
+                  ].map((p) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onClick={() => {
+                        setActivePersona(p.name as any);
+                        setPanel(null);
+                        navigate({ to: "/" });
+                      }}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                        activePersona === p.name
+                          ? "bg-brand text-brand-foreground shadow-xs"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <span>{p.label}</span>
+                      {activePersona === p.name && <span className="text-[10px] font-bold">Active</span>}
+                    </button>
+                  ))}
                 </div>
               </div>
 

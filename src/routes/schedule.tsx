@@ -72,9 +72,9 @@ const TIME_BLOCKS = [
 ];
 
 const FACILITATORS = [
-  { name: "Anesu Muchirewesi", role: "Teacher Training Manager", initials: "AM" },
-  { name: "Simba", role: "Teacher Training Coordinator", initials: "SM" },
-  { name: "Diana Dumbu", role: "Teacher Training Coordinator", initials: "DD" },
+  { name: "Anesu Muchirewesi", role: "Teacher Training Manager (Warren Park Hub)", initials: "AM" },
+  { name: "Simba", role: "Resident Facilitator (Kuwadzana Hub)", initials: "SM" },
+  { name: "Diana Dumbu", role: "Resident Facilitator (Chitungwiza Hub)", initials: "DD" },
 ];
 
 const LAB_SPECS: Record<
@@ -92,7 +92,7 @@ const LAB_SPECS: Record<
     hardware: "30 Dell OptiPlex PCs + Epson Projector",
     connectivity: "Fiber + Local Ka-Lite Offline LMS",
     power: "Grid + Generator Backup",
-    coordinator: "Anesu Muchirewesi",
+    coordinator: "Simba",
   },
   "Chitungwiza Hub Lab": {
     seats: 35,
@@ -106,7 +106,7 @@ const LAB_SPECS: Record<
     hardware: "28 Lenovo ThinkCentre PCs + Smart TV",
     connectivity: "High-speed Starlink + Raspberry Pi LMS",
     power: "5kVA Solar System & Lithium Battery",
-    coordinator: "Simba",
+    coordinator: "Anesu Muchirewesi (Manager Dual-Role)",
   },
 };
 
@@ -119,6 +119,7 @@ function SchedulePage() {
     updateSession,
     deleteSession,
     changeSessionStatus,
+    activePersona,
   } = useTraining();
 
   // Filters & View State
@@ -616,20 +617,30 @@ function SchedulePage() {
           </div>
 
           {/* Facilitator Select */}
-          <div>
+          <div className="flex items-center gap-1.5">
             <select
               aria-label="Filter by facilitator"
               value={selectedFacilitator}
               onChange={(e) => setSelectedFacilitator(e.target.value)}
-              className="field text-xs font-medium"
+              className="field text-xs font-medium flex-1"
             >
               <option value="All facilitators">All Facilitators</option>
               {FACILITATORS.map((f) => (
                 <option key={f.name} value={f.name}>
-                  {f.name} ({f.role.includes("Manager") ? "Manager" : "Coordinator"})
+                  {f.name} ({f.name === "Anesu Muchirewesi" ? "Manager · Warren Park" : f.name === "Simba" ? "Facilitator · Kuwadzana" : "Facilitator · Chitungwiza"})
                 </option>
               ))}
             </select>
+            {activePersona && selectedFacilitator !== activePersona && (
+              <button
+                type="button"
+                onClick={() => setSelectedFacilitator(activePersona)}
+                title={`Filter to ${activePersona}'s sessions`}
+                className="shrink-0 rounded-lg border border-brand/30 bg-brand/10 px-2 py-2 text-[11px] font-semibold text-brand hover:bg-brand/20 transition-colors"
+              >
+                My sessions
+              </button>
+            )}
           </div>
 
           {/* Tier Select */}

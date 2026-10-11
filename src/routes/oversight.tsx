@@ -126,11 +126,11 @@ const DEFAULT_DIRECTIVES = [
   {
     id: "dir-2",
     author: "Anesu Muchirewesi (Manager)",
-    recipient: "Simba (Coordinator)",
+    recipient: "Simba (Resident Facilitator)",
     date: "09 Oct 2026",
-    topic: "Warren Park Scratch Programming Practical",
+    topic: "Kuwadzana Scratch Programming Practical",
     content:
-      "Verify offline Scratch 3.0 installers on all 28 Lenovo stations ahead of Tuesday's M7 session.",
+      "Verify offline Scratch 3.0 installers on all 30 Dell stations at Kuwadzana Hub Lab ahead of Tuesday's M7 session.",
     status: "Completed",
   },
 ];
@@ -177,10 +177,10 @@ function ManagerOversightPage() {
 
       const leadCoordinator =
         center === "Kuwadzana Hub Lab"
-          ? "Anesu Muchirewesi"
+          ? "Simba"
           : center === "Chitungwiza Hub Lab"
             ? "Diana Dumbu"
-            : "Simba";
+            : "Anesu Muchirewesi (Manager Dual-Role)";
 
       const powerSource =
         center === "Kuwadzana Hub Lab"
@@ -206,7 +206,7 @@ function ManagerOversightPage() {
       const activeIssues =
         center === "Chitungwiza Hub Lab"
           ? ["Double-booking flagged on Monday (resolved)"]
-          : center === "Warren Park Hub Lab"
+          : center === "Kuwadzana Hub Lab"
             ? ["Primary school computer period overlap on Thursday"]
             : ["All systems operational"];
 
@@ -235,24 +235,8 @@ function ManagerOversightPage() {
   const facilitatorData: FacilitatorAuditData[] = useMemo(() => {
     const facilitators = [
       {
-        name: "Anesu Muchirewesi",
-        role: "Teacher Training Manager",
-        initials: "AM",
-        specialization: "Upper Junior (Gr5–Gr7) · M4 Ethics & M8 Offline Networks",
-        primaryHub: "Kuwadzana Hub Lab",
-        commendation: "Syllabus Master & Quality Auditor",
-        teachingHours: 38,
-        satisfactionRating: 4.92,
-        satisfactionPct: 98.4,
-        punctualityRate: 100,
-        deliveryCompliance: 98,
-        labsCompleted: "16 / 16 labs (100%)",
-        mentorshipClinics: 18,
-        portfolioSubmissionRate: 94,
-      },
-      {
         name: "Diana Dumbu",
-        role: "Teacher Training Coordinator",
+        role: "Resident Facilitator",
         initials: "DD",
         specialization: "Infants (ECD–Gr2) · M1 ICT Tools & M2 Learning Aids",
         primaryHub: "Chitungwiza Hub Lab",
@@ -268,10 +252,10 @@ function ManagerOversightPage() {
       },
       {
         name: "Simba",
-        role: "Teacher Training Coordinator",
+        role: "Resident Facilitator",
         initials: "SM",
         specialization: "Middle Junior (Gr3–Gr4) · M6 STEAM & M7 Scratch Logic",
-        primaryHub: "Warren Park Hub Lab",
+        primaryHub: "Kuwadzana Hub Lab",
         commendation: "Hands-on Coding & Scratch Mentor",
         teachingHours: 44,
         satisfactionRating: 4.86,
@@ -281,6 +265,22 @@ function ManagerOversightPage() {
         labsCompleted: "22 / 24 labs (91%)",
         mentorshipClinics: 42,
         portfolioSubmissionRate: 88,
+      },
+      {
+        name: "Anesu Muchirewesi",
+        role: "Teacher Training Manager (Warren Park Facilitator)",
+        initials: "AM",
+        specialization: "Upper Junior (Gr5–Gr7) · M4 Ethics & M8 Offline Networks",
+        primaryHub: "Warren Park Hub Lab",
+        commendation: "Manager Dual-Role & Quality Auditor",
+        teachingHours: 38,
+        satisfactionRating: 4.92,
+        satisfactionPct: 98.4,
+        punctualityRate: 100,
+        deliveryCompliance: 98,
+        labsCompleted: "16 / 16 labs (100%)",
+        mentorshipClinics: 18,
+        portfolioSubmissionRate: 94,
       },
     ];
 

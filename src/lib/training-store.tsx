@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { cohorts as defaultCohorts, sessions as defaultSessions, type Cohort, type Session, type Tier } from "@/data/mis";
+import { useAppAuth } from "@/lib/clerk/provider";
 import {
   fetchTrainingDataFn,
   updateCohortFn,
@@ -12,6 +13,8 @@ import {
   uploadPhotoToR2Fn,
   uploadReportToR2Fn,
 } from "@/lib/functions";
+
+export type PersonaType = "Anesu Muchirewesi" | "Diana Dumbu" | "Simba";
 
 export type ProgrammeSettings = {
   name: string;
@@ -42,6 +45,8 @@ const initial: TrainingState = {
 };
 
 export type Store = TrainingState & {
+  activePersona: PersonaType;
+  setActivePersona: (persona: PersonaType) => void;
   setCohorts: React.Dispatch<React.SetStateAction<Cohort[]>>;
   setSessions: React.Dispatch<React.SetStateAction<Session[]>>;
   setSettings: React.Dispatch<React.SetStateAction<ProgrammeSettings>>;
@@ -91,9 +96,22 @@ export type Store = TrainingState & {
 };
 
 const TrainingContext = createContext<Store | null>(null);
-const KEY = "tutortrack-training-v5";
+const KEY = "tutortrack-training-v6";
 
 export function TrainingProvider({ children }: { children: ReactNode }) {
+  const auth = useAppAuth();
+  const [activePersona, setActivePersona] = useState<PersonaType>("Anesu Muchirewesi");
+
+  useEffect(() => {
+    if (auth.userName?.toLowerCase().includes("diana")) {
+      setActivePersona("Diana Dumbu");
+    } else if (auth.userName?.toLowerCase().includes("simba")) {
+      setActivePersona("Simba");
+    } else if (auth.userName?.toLowerCase().includes("anesu")) {
+      setActivePersona("Anesu Muchirewesi");
+    }
+  }, [auth.userName]);
+
   const [cohortRows, setCohorts] = useState<Cohort[]>(initial.cohorts);
   const [sessionRows, setSessions] = useState<Session[]>(initial.sessions);
   const [settings, setSettings] = useState<ProgrammeSettings>(initial.settings);
@@ -462,6 +480,8 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
   return (
     <TrainingContext.Provider
       value={{
+        activePersona,
+        setActivePersona,
         cohorts: cohortRows,
         sessions: sessionRows,
         settings,

@@ -14,6 +14,7 @@ export interface AppAuthContextType {
   userName?: string;
   userPhoto?: string;
   userRole?: string;
+  userLab?: string;
 }
 
 const AppAuthContext = createContext<AppAuthContextType>({
@@ -30,20 +31,22 @@ function InnerAuthProvider({ children }: { children: React.ReactNode }) {
   const email = user?.primaryEmailAddress?.emailAddress;
   const fullName = user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "";
 
-  // Derive role based on test accounts or email
+  // Derive role and resident lab based on test accounts or email
   const matchedAccount = TEST_ACCOUNTS.find(
     (a) => a.email.toLowerCase() === email?.toLowerCase()
   );
-  const role = matchedAccount ? matchedAccount.role : "Teacher Training Coordinator";
+  const role = matchedAccount ? matchedAccount.role : "Teacher Training Manager";
+  const lab = matchedAccount ? (matchedAccount as any).lab : "Warren Park Hub Lab (Dual-Role)";
 
   const value: AppAuthContextType = {
     userId: userId ?? null,
     isSignedIn: Boolean(isSignedIn),
     isLoaded,
     userEmail: email,
-    userName: fullName || (matchedAccount ? matchedAccount.name : "Educator Lead"),
+    userName: fullName || (matchedAccount ? matchedAccount.name : "Anesu Muchirewesi"),
     userPhoto: user?.imageUrl,
     userRole: role,
+    userLab: lab,
   };
 
   return <AppAuthContext.Provider value={value}>{children}</AppAuthContext.Provider>;

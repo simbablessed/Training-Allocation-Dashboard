@@ -14,18 +14,21 @@ export const TEST_ACCOUNTS = [
     name: "Anesu Muchirewesi",
     email: "anesu.muchirewesi@uncommon.org",
     role: "Teacher Training Manager",
+    lab: "Warren Park Hub Lab (Dual-Role)",
     password: "Uncomm0n@26",
   },
   {
     name: "Simba",
     email: "simbarashe@uncommon.org",
-    role: "Teacher Training Coordinator",
+    role: "Resident Facilitator",
+    lab: "Kuwadzana Hub Lab",
     password: "Uncomm0n@26",
   },
   {
     name: "Diana Dumbu",
     email: "diana@uncommon.org",
-    role: "Teacher Training Coordinator",
+    role: "Resident Facilitator",
+    lab: "Chitungwiza Hub Lab",
     password: "Uncomm0n@26",
   },
 ];

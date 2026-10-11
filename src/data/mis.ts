@@ -48,14 +48,19 @@ export type Session = {
 };
 
 export const sessions: Session[] = [
+  // Kuwadzana Hub Lab (Resident Facilitator: Simba)
   { id: "s1", time: "08:30", day: "Mon", module: "M6", title: "ICT Enterprise Workshop", center: "Kuwadzana Hub Lab", tier: "Upper Junior", facilitator: "Simba", status: "Confirmed" },
+  { id: "s3", time: "13:30", day: "Tue", module: "M7", title: "Programming Logic & Scratch", center: "Kuwadzana Hub Lab", tier: "Middle Junior", facilitator: "Simba", status: "Confirmed" },
+  { id: "s6", time: "14:00", day: "Thu", module: "M5", title: "Web & Collaborative Tools", center: "Kuwadzana Hub Lab", tier: "Middle Junior", facilitator: "Simba", status: "Conflict", note: "Collision with Kuwadzana school computer period 14:00–15:00" },
+
+  // Chitungwiza Hub Lab (Resident Facilitator: Diana Dumbu)
   { id: "s2", time: "10:00", day: "Mon", module: "M1", title: "ICT Tools Refresher", center: "Chitungwiza Hub Lab", tier: "Infants", facilitator: "Diana Dumbu", status: "Conflict", note: "Lab double-booked with Grade 4 teacher practical" },
-  { id: "s3", time: "13:30", day: "Tue", module: "M7", title: "Programming Logic & Scratch", center: "Warren Park Hub Lab", tier: "Middle Junior", facilitator: "Simba", status: "Pending" },
-  { id: "s4", time: "09:00", day: "Wed", module: "M4", title: "Safety & Ethics in Classrooms", center: "Kuwadzana Hub Lab", tier: "Upper Junior", facilitator: "Anesu Muchirewesi", status: "Confirmed" },
   { id: "s5", time: "11:00", day: "Wed", module: "M2", title: "Creating Digital Learning Aids", center: "Chitungwiza Hub Lab", tier: "Middle Junior", facilitator: "Diana Dumbu", status: "Confirmed" },
-  { id: "s6", time: "14:00", day: "Thu", module: "M5", title: "Web & Collaborative Tools", center: "Warren Park Hub Lab", tier: "Infants", facilitator: "Simba", status: "Conflict", note: "Collision with school computer period 14:00–15:00" },
-  { id: "s7", time: "08:00", day: "Fri", module: "M8", title: "Network Setup & Offline LMS", center: "Kuwadzana Hub Lab", tier: "Upper Junior", facilitator: "Anesu Muchirewesi", status: "Pending" },
-  { id: "s8", time: "14:30", day: "Fri", module: "M3", title: "Educational Software Clinic", center: "Chitungwiza Hub Lab", tier: "Middle Junior", facilitator: "Diana Dumbu", status: "Confirmed" },
+  { id: "s8", time: "14:30", day: "Fri", module: "M3", title: "Educational Software Clinic", center: "Chitungwiza Hub Lab", tier: "Infants", facilitator: "Diana Dumbu", status: "Confirmed" },
+
+  // Warren Park Hub Lab (Facilitator: Anesu Muchirewesi - Manager Dual-Role)
+  { id: "s4", time: "09:00", day: "Wed", module: "M4", title: "Safety & Ethics in Classrooms", center: "Warren Park Hub Lab", tier: "Upper Junior", facilitator: "Anesu Muchirewesi", status: "Confirmed" },
+  { id: "s7", time: "08:00", day: "Fri", module: "M8", title: "Network Setup & Offline LMS", center: "Warren Park Hub Lab", tier: "Upper Junior", facilitator: "Anesu Muchirewesi", status: "Pending" },
 ];
 
 export type Cohort = {
@@ -72,12 +77,17 @@ export type Cohort = {
 };
 
 export const cohorts: Cohort[] = [
-  { id: "c1", name: "Infants Class A (ECD–Gr2)", tier: "Infants", center: "Kuwadzana Hub Lab", educators: 28, modulesDone: 5, attendance: 95, pre: 42, post: 76, facilitator: "Diana Dumbu" },
-  { id: "c2", name: "Middle Junior Class B (Gr3–Gr4)", tier: "Middle Junior", center: "Chitungwiza Hub Lab", educators: 32, modulesDone: 6, attendance: 91, pre: 46, post: 79, facilitator: "Simba" },
-  { id: "c3", name: "Upper Junior Class C (Gr5–Gr7)", tier: "Upper Junior", center: "Warren Park Hub Lab", educators: 34, modulesDone: 7, attendance: 88, pre: 51, post: 82, facilitator: "Anesu Muchirewesi" },
-  { id: "c4", name: "Infants Class D (ECD–Gr2)", tier: "Infants", center: "Chitungwiza Hub Lab", educators: 26, modulesDone: 4, attendance: 86, pre: 39, post: 68, facilitator: "Diana Dumbu" },
-  { id: "c5", name: "Middle Junior Class E (Gr3–Gr4)", tier: "Middle Junior", center: "Warren Park Hub Lab", educators: 31, modulesDone: 5, attendance: 84, pre: 44, post: 72, facilitator: "Simba" },
-  { id: "c6", name: "Upper Junior Class F (Gr5–Gr7)", tier: "Upper Junior", center: "Kuwadzana Hub Lab", educators: 30, modulesDone: 6, attendance: 92, pre: 50, post: 80, facilitator: "Anesu Muchirewesi" },
+  // Kuwadzana Hub Lab (Resident Facilitator: Simba)
+  { id: "c1", name: "Middle Junior Class A (Gr3–Gr4)", tier: "Middle Junior", center: "Kuwadzana Hub Lab", educators: 32, modulesDone: 6, attendance: 91, pre: 46, post: 79, facilitator: "Simba" },
+  { id: "c6", name: "Upper Junior Class F (Gr5–Gr7)", tier: "Upper Junior", center: "Kuwadzana Hub Lab", educators: 30, modulesDone: 5, attendance: 88, pre: 44, post: 75, facilitator: "Simba" },
+
+  // Chitungwiza Hub Lab (Resident Facilitator: Diana Dumbu)
+  { id: "c2", name: "Infants Class B (ECD–Gr2)", tier: "Infants", center: "Chitungwiza Hub Lab", educators: 28, modulesDone: 5, attendance: 95, pre: 42, post: 78, facilitator: "Diana Dumbu" },
+  { id: "c4", name: "Infants Class D (ECD–Gr2)", tier: "Infants", center: "Chitungwiza Hub Lab", educators: 26, modulesDone: 4, attendance: 92, pre: 39, post: 74, facilitator: "Diana Dumbu" },
+
+  // Warren Park Hub Lab (Facilitator: Anesu Muchirewesi - Manager Dual-Role)
+  { id: "c3", name: "Upper Junior Class C (Gr5–Gr7)", tier: "Upper Junior", center: "Warren Park Hub Lab", educators: 34, modulesDone: 7, attendance: 90, pre: 51, post: 84, facilitator: "Anesu Muchirewesi" },
+  { id: "c5", name: "Middle Junior Class E (Gr3–Gr4)", tier: "Middle Junior", center: "Warren Park Hub Lab", educators: 31, modulesDone: 5, attendance: 87, pre: 48, post: 77, facilitator: "Anesu Muchirewesi" },
 ];
 
 export const scorecard = [

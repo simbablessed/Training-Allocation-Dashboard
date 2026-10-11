@@ -354,7 +354,7 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
                             {acc.name}
                           </p>
                           <p className="truncate text-[11px] text-brand font-medium">
-                            {acc.role}
+                            {acc.role} · {acc.lab}
                           </p>
                         </div>
                       </div>
