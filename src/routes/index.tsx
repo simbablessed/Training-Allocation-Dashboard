@@ -5,6 +5,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { kpiTrend, modules, tiers } from "@/data/mis";
 import { getKpis, useTraining } from "@/lib/training-store";
 import { Button } from "@/components/ui/button";
+import { ShieldCheck, Building2, Users, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,7 +42,14 @@ function Dashboard() {
         title="Training Allocation Dashboard"
         meta="Term 3 · Week 12 · 8 curriculum modules · 3 host centers (Kuwadzana, Chitungwiza, Warren Park)"
         action={
-          <Button asChild><Link to="/schedule">View schedule →</Link></Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm" icon={<ShieldCheck className="size-3.5 text-brand" />}>
+              <Link to="/oversight">Manager Oversight →</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/schedule">View schedule →</Link>
+            </Button>
+          </div>
         }
       />
 
@@ -69,6 +77,36 @@ function Dashboard() {
           <p className="text-[11px] font-medium uppercase tracking-wider text-ink/45">Lab Conflicts</p>
            <p className="mt-2 font-display text-3xl font-semibold text-amber">{kpis.conflicts}</p>
            <p className="mt-1.5 text-[11px] font-medium text-amber/90">{kpis.conflicts ? "Needs resolution" : "No active conflicts"}</p>
+        </div>
+      </div>
+
+      {/* Teacher Training Manager Executive Spotlight Banner */}
+      <div className="mt-4 rounded-2xl border border-brand/25 bg-brand/5 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-xl bg-brand text-brand-foreground shadow-xs">
+              <ShieldCheck className="size-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-display text-sm font-bold text-foreground">
+                  Teacher Training Manager Oversight
+                </h3>
+                <span className="rounded-full bg-brand/15 px-2 py-0.2 text-[10px] font-bold text-brand">
+                  Lead: Anesu Muchirewesi
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Audit lab center throughput (Kuwadzana, Chitungwiza, Warren Park), monitor facilitator delivery (Diana Dumbu & Simba), and log directives.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button asChild size="sm" icon={<ArrowUpRight className="size-3.5" />}>
+              <Link to="/oversight">Open Manager Cockpit</Link>
+            </Button>
+          </div>
         </div>
       </div>
 

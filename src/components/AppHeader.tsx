@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useClerk } from "@clerk/clerk-react";
-import { Bell, Database, LogOut, RefreshCw, Search, Settings, UserRound, X, Cloud } from "lucide-react";
+import { Bell, Database, LogOut, RefreshCw, Search, Settings, UserRound, X, Cloud, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTraining } from "@/lib/training-store";
@@ -8,6 +8,7 @@ import { useAppAuth } from "@/lib/clerk/provider";
 
 const nav = [
   { to: "/", label: "Overview" },
+  { to: "/oversight", label: "Oversight" },
   { to: "/schedule", label: "Schedule" },
   { to: "/cohorts", label: "Classes" },
   { to: "/assessments", label: "Assessments" },
@@ -255,6 +256,17 @@ export function AppHeader() {
               <div className="space-y-1 pt-1">
                 <Button
                   variant="outline"
+                  className="w-full justify-start text-xs font-semibold text-brand border-brand/30 hover:bg-brand/10"
+                  icon={<ShieldCheck className="size-3.5 text-brand" />}
+                  onClick={() => {
+                    navigate({ to: "/oversight" });
+                    setPanel(null);
+                  }}
+                >
+                  Manager oversight cockpit
+                </Button>
+                <Button
+                  variant="ghost"
                   className="w-full justify-start text-xs"
                   icon={<UserRound className="size-3.5" />}
                   onClick={() => {

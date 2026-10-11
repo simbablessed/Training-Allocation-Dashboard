@@ -8,9 +8,16 @@ import {
   LayoutDashboard,
   Settings,
   UsersRound,
+  ShieldCheck,
 } from "lucide-react";
 
 const sections = [
+  {
+    label: "Executive Oversight",
+    links: [
+      { to: "/oversight", label: "Manager oversight", icon: ShieldCheck },
+    ],
+  },
   {
     label: "Training",
     links: [

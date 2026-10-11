@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssessmentsRouteImport } from './routes/assessments'
 import { Route as CohortsRouteImport } from './routes/cohorts'
+import { Route as OversightRouteImport } from './routes/oversight'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -29,6 +30,11 @@ const AssessmentsRoute = AssessmentsRouteImport.update({
 const CohortsRoute = CohortsRouteImport.update({
   id: '/cohorts',
   path: '/cohorts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OversightRoute = OversightRouteImport.update({
+  id: '/oversight',
+  path: '/oversight',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assessments': typeof AssessmentsRoute
   '/cohorts': typeof CohortsRoute
+  '/oversight': typeof OversightRoute
   '/reports': typeof ReportsRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assessments': typeof AssessmentsRoute
   '/cohorts': typeof CohortsRoute
+  '/oversight': typeof OversightRoute
   '/reports': typeof ReportsRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/assessments': typeof AssessmentsRoute
   '/cohorts': typeof CohortsRoute
+  '/oversight': typeof OversightRoute
   '/reports': typeof ReportsRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/assessments' | '/cohorts' | '/reports' | '/schedule' | '/settings'
+    | '/'
+    | '/assessments'
+    | '/cohorts'
+    | '/oversight'
+    | '/reports'
+    | '/schedule'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/assessments' | '/cohorts' | '/reports' | '/schedule' | '/settings'
+  to:
+    | '/'
+    | '/assessments'
+    | '/cohorts'
+    | '/oversight'
+    | '/reports'
+    | '/schedule'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/assessments'
     | '/cohorts'
+    | '/oversight'
     | '/reports'
     | '/schedule'
     | '/settings'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssessmentsRoute: typeof AssessmentsRoute
   CohortsRoute: typeof CohortsRoute
+  OversightRoute: typeof OversightRoute
   ReportsRoute: typeof ReportsRoute
   ScheduleRoute: typeof ScheduleRoute
   SettingsRoute: typeof SettingsRoute
@@ -118,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/cohorts'
       fullPath: '/cohorts'
       preLoaderRoute: typeof CohortsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oversight': {
+      id: '/oversight'
+      path: '/oversight'
+      fullPath: '/oversight'
+      preLoaderRoute: typeof OversightRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -148,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssessmentsRoute: AssessmentsRoute,
   CohortsRoute: CohortsRoute,
+  OversightRoute: OversightRoute,
   ReportsRoute: ReportsRoute,
   ScheduleRoute: ScheduleRoute,
   SettingsRoute: SettingsRoute,
