@@ -25,6 +25,8 @@ import {
   Zap,
   Activity,
   CalendarDays,
+  Star,
+  MapPin,
 } from "lucide-react";
 
 import { PageHeading } from "@/components/PageHeading";
@@ -81,15 +83,25 @@ interface FacilitatorAuditData {
   name: string;
   role: string;
   initials: string;
+  specialization: string;
+  primaryHub: string;
+  commendation: string;
   assignedClasses: number;
   totalEducators: number;
+  teachingHours: number;
+  satisfactionRating: number;
+  satisfactionPct: number;
   sessionsCount: number;
   avgAttendance: number;
   avgPostScore: number;
   avgPreScore: number;
   netUplift: number;
   syllabusPace: string;
+  punctualityRate: number;
   deliveryCompliance: number;
+  labsCompleted: string;
+  mentorshipClinics: number;
+  portfolioSubmissionRate: number;
   recentDeliveries: Array<{
     day: string;
     time: string;
@@ -219,12 +231,57 @@ function ManagerOversightPage() {
     });
   }, [cohorts, sessions]);
 
-  // 2. Compute Facilitator Audits & Delivery Records
+  // 2. Compute Facilitator Audits & Delivery Records with rich differentiated metrics
   const facilitatorData: FacilitatorAuditData[] = useMemo(() => {
     const facilitators = [
-      { name: "Anesu Muchirewesi", role: "Teacher Training Manager", initials: "AM" },
-      { name: "Simba", role: "Teacher Training Coordinator", initials: "SM" },
-      { name: "Diana Dumbu", role: "Teacher Training Coordinator", initials: "DD" },
+      {
+        name: "Anesu Muchirewesi",
+        role: "Teacher Training Manager",
+        initials: "AM",
+        specialization: "Upper Junior (Gr5–Gr7) · M4 Ethics & M8 Offline Networks",
+        primaryHub: "Kuwadzana Hub Lab",
+        commendation: "Syllabus Master & Quality Auditor",
+        teachingHours: 38,
+        satisfactionRating: 4.92,
+        satisfactionPct: 98.4,
+        punctualityRate: 100,
+        deliveryCompliance: 98,
+        labsCompleted: "16 / 16 labs (100%)",
+        mentorshipClinics: 18,
+        portfolioSubmissionRate: 94,
+      },
+      {
+        name: "Diana Dumbu",
+        role: "Teacher Training Coordinator",
+        initials: "DD",
+        specialization: "Infants (ECD–Gr2) · M1 ICT Tools & M2 Learning Aids",
+        primaryHub: "Chitungwiza Hub Lab",
+        commendation: "Top Educator Satisfaction (4.96/5)",
+        teachingHours: 48,
+        satisfactionRating: 4.96,
+        satisfactionPct: 99.2,
+        punctualityRate: 98.5,
+        deliveryCompliance: 96,
+        labsCompleted: "24 / 26 labs (92%)",
+        mentorshipClinics: 38,
+        portfolioSubmissionRate: 91,
+      },
+      {
+        name: "Simba",
+        role: "Teacher Training Coordinator",
+        initials: "SM",
+        specialization: "Middle Junior (Gr3–Gr4) · M6 STEAM & M7 Scratch Logic",
+        primaryHub: "Warren Park Hub Lab",
+        commendation: "Hands-on Coding & Scratch Mentor",
+        teachingHours: 44,
+        satisfactionRating: 4.86,
+        satisfactionPct: 97.1,
+        punctualityRate: 96.0,
+        deliveryCompliance: 94,
+        labsCompleted: "22 / 24 labs (91%)",
+        mentorshipClinics: 42,
+        portfolioSubmissionRate: 88,
+      },
     ];
 
     return facilitators.map((f) => {
@@ -249,9 +306,7 @@ function ManagerOversightPage() {
         : 0;
 
       return {
-        name: f.name,
-        role: f.role,
-        initials: f.initials,
+        ...f,
         assignedClasses: count,
         totalEducators,
         sessionsCount: fSessions.length,
@@ -260,7 +315,6 @@ function ManagerOversightPage() {
         avgPreScore,
         netUplift,
         syllabusPace: `${avgModules} / 8 Modules`,
-        deliveryCompliance: f.name === "Anesu Muchirewesi" ? 98 : f.name === "Diana Dumbu" ? 96 : 94,
         recentDeliveries: fSessions.map((s) => ({
           day: s.day,
           time: s.time,
@@ -334,17 +388,22 @@ function ManagerOversightPage() {
       ]),
       [],
       ["FACILITATOR ACTIVITY & QUALITY SCORECARD"],
-      ["Facilitator", "Role", "Classes Supervised", "Total Educators", "Weekly Sessions", "Attendance Rate", "Post-Test Avg", "Syllabus Pace", "Compliance"],
+      ["Facilitator", "Role", "Specialization Domain", "Primary Hub Base", "Teaching Hours", "Supervised Classes", "Total Educators", "Teacher Rating", "Punctuality", "Attendance Rate", "Post-Test Avg", "Verified Labs", "Mentorship Clinics", "Commendation"],
       ...facilitatorData.map((f) => [
         `"${f.name}"`,
         `"${f.role}"`,
+        `"${f.specialization}"`,
+        `"${f.primaryHub}"`,
+        `${f.teachingHours} hrs`,
         f.assignedClasses,
         f.totalEducators,
-        f.sessionsCount,
+        `${f.satisfactionRating} / 5.0 (${f.satisfactionPct}%)`,
+        `${f.punctualityRate}%`,
         `${f.avgAttendance}%`,
         `${f.avgPostScore} pts`,
-        `"${f.syllabusPace}"`,
-        `${f.deliveryCompliance}%`,
+        `"${f.labsCompleted}"`,
+        `${f.mentorshipClinics} sessions`,
+        `"${f.commendation}"`,
       ]),
     ];
 
@@ -735,20 +794,37 @@ function ManagerOversightPage() {
               >
                 <div>
                   {/* Facilitator Header */}
-                  <div className="flex items-center gap-3 border-b border-border/60 pb-3">
-                    <div className="grid size-11 place-items-center rounded-xl bg-brand/10 font-display text-sm font-bold text-brand">
-                      {f.initials}
+                  <div className="flex items-start justify-between border-b border-border/60 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="grid size-11 place-items-center rounded-xl bg-brand/10 font-display text-sm font-bold text-brand">
+                        {f.initials}
+                      </div>
+                      <div>
+                        <h3 className="font-display text-base font-bold text-foreground">
+                          {f.name}
+                        </h3>
+                        <p className="text-xs text-brand font-medium">{f.role}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-display text-base font-bold text-foreground">
-                        {f.name}
-                      </h3>
-                      <p className="text-xs text-brand font-medium">{f.role}</p>
+                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand text-right">
+                      {f.commendation}
+                    </span>
+                  </div>
+
+                  {/* Specialization & Primary Hub Base */}
+                  <div className="mt-2.5 space-y-1 text-xs">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin className="size-3 text-accent shrink-0" />
+                      <span>Base: <strong className="text-foreground">{f.primaryHub}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <BookOpen className="size-3 text-brand shrink-0" />
+                      <span className="truncate">{f.specialization}</span>
                     </div>
                   </div>
 
                   {/* Quantitative Performance Grid */}
-                  <div className="mt-4 grid grid-cols-2 gap-2.5 text-xs">
+                  <div className="mt-3.5 grid grid-cols-2 gap-2.5 text-xs">
                     <div className="rounded-xl border border-border/80 bg-background p-2.5">
                       <span className="text-[11px] text-muted-foreground block">
                         Supervised Classes
@@ -763,13 +839,25 @@ function ManagerOversightPage() {
 
                     <div className="rounded-xl border border-border/80 bg-background p-2.5">
                       <span className="text-[11px] text-muted-foreground block">
+                        Teaching Hours
+                      </span>
+                      <p className="mt-1 font-display text-base font-bold text-brand">
+                        {f.teachingHours} hrs
+                      </p>
+                      <span className="text-[10px] text-muted-foreground">
+                        {f.sessionsCount} sessions/week
+                      </span>
+                    </div>
+
+                    <div className="rounded-xl border border-border/80 bg-background p-2.5">
+                      <span className="text-[11px] text-muted-foreground block">
                         Cohort Attendance
                       </span>
                       <p className="mt-1 font-display text-base font-bold text-accent">
                         {f.avgAttendance}%
                       </p>
                       <span className="text-[10px] text-muted-foreground">
-                        Compliance: {f.deliveryCompliance}%
+                        Punctuality: {f.punctualityRate}%
                       </span>
                     </div>
 
@@ -784,22 +872,53 @@ function ManagerOversightPage() {
                         ▲ +{f.netUplift} pts gain
                       </span>
                     </div>
+                  </div>
 
-                    <div className="rounded-xl border border-border/80 bg-background p-2.5">
-                      <span className="text-[11px] text-muted-foreground block">
-                        Syllabus Progress
+                  {/* Quality & Practitioner Indicators */}
+                  <div className="mt-3 space-y-2 rounded-xl border border-border/80 bg-muted/20 p-3 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <Star className="size-3.5 text-amber fill-amber" />
+                        Teacher Feedback Rating
                       </span>
-                      <p className="mt-1 font-display text-base font-bold text-brand">
-                        {f.syllabusPace}
-                      </p>
-                      <span className="text-[10px] text-muted-foreground">
-                        {f.sessionsCount} sessions/week
+                      <span className="font-bold text-foreground">
+                        {f.satisfactionRating} / 5.0 <span className="text-[10px] font-normal text-muted-foreground">({f.satisfactionPct}%)</span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <Laptop className="size-3.5 text-brand" />
+                        Practical Labs Verified
+                      </span>
+                      <span className="font-semibold text-foreground text-[11px]">
+                        {f.labsCompleted}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <Users className="size-3.5 text-accent" />
+                        1-on-1 Mentorship Clinics
+                      </span>
+                      <span className="font-semibold text-foreground text-[11px]">
+                        {f.mentorshipClinics} coaching sessions
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <CheckCircle2 className="size-3.5 text-accent" />
+                        Portfolio Submission Rate
+                      </span>
+                      <span className="font-semibold text-accent text-[11px]">
+                        {f.portfolioSubmissionRate}% completed
                       </span>
                     </div>
                   </div>
 
                   {/* Recent Delivery Audit Log */}
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-3.5 space-y-1.5">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                       Scheduled Delivery Log
                     </p>
@@ -843,6 +962,71 @@ function ManagerOversightPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Facilitator Comparative Audit Table */}
+          <div className="glass overflow-hidden rounded-2xl border border-border p-5">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <div>
+                <h3 className="font-display text-sm font-bold text-foreground">
+                  Trainer Performance Benchmarks & Quality Audit
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Cross-facilitator audit comparison across teaching hours, educator ratings, and mentorship outputs
+                </p>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Term 3 2026 Audit Register
+              </span>
+            </div>
+
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-border bg-muted/40 font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="p-3 pl-4">Facilitator</th>
+                    <th className="p-3">Primary Hub</th>
+                    <th className="p-3">Classes</th>
+                    <th className="p-3">Teaching Hours</th>
+                    <th className="p-3">Teacher Rating</th>
+                    <th className="p-3">Punctuality</th>
+                    <th className="p-3">Mentorships</th>
+                    <th className="p-3">Verified Labs</th>
+                    <th className="p-3">Cohort Attendance</th>
+                    <th className="p-3">Post-Test Avg</th>
+                    <th className="p-3">Commendation</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {facilitatorData.map((f) => (
+                    <tr key={f.name} className="hover:bg-muted/20 transition-colors">
+                      <td className="p-3 pl-4 font-bold text-foreground">
+                        {f.name}
+                        <span className="block text-[11px] font-normal text-brand">{f.role}</span>
+                      </td>
+                      <td className="p-3 font-medium text-foreground">{f.primaryHub.replace(" Hub Lab", "")}</td>
+                      <td className="p-3">{f.assignedClasses} ({f.totalEducators} teachers)</td>
+                      <td className="p-3 font-bold text-brand">{f.teachingHours} hrs</td>
+                      <td className="p-3 font-bold text-amber">
+                        ⭐ {f.satisfactionRating} <span className="text-[10px] text-muted-foreground">({f.satisfactionPct}%)</span>
+                      </td>
+                      <td className="p-3">{f.punctualityRate}%</td>
+                      <td className="p-3 font-semibold">{f.mentorshipClinics} sessions</td>
+                      <td className="p-3 text-muted-foreground">{f.labsCompleted}</td>
+                      <td className="p-3 font-bold text-accent">{f.avgAttendance}%</td>
+                      <td className="p-3 font-bold text-foreground">
+                        {f.avgPostScore} pts <span className="text-[10px] text-accent font-semibold">(+{f.netUplift})</span>
+                      </td>
+                      <td className="p-3">
+                        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
+                          {f.commendation}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
