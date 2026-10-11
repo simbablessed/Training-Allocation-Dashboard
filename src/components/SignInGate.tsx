@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useSignIn } from "@clerk/clerk-react";
 import {
-  BookOpen,
-  MapPin,
-  BarChart3,
   ShieldCheck,
   ArrowRight,
   Loader2,
@@ -172,11 +169,50 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Signed out view: non-scrollable, styled to match TutorTrack UI
+  // Signed out view: non-scrollable, styled to match TutorTrack UI with subtle ambient breathing visuals
   return (
-    <div className="flex h-screen max-h-[100dvh] w-full flex-col justify-between overflow-hidden bg-background text-foreground selection:bg-brand/15 selection:text-brand">
+    <div className="relative flex h-screen max-h-[100dvh] w-full flex-col justify-between overflow-hidden bg-background text-foreground selection:bg-brand/15 selection:text-brand">
+      {/* Ambient background visuals: subtle breathing orbs & dot pattern */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* Subtle dot grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `radial-gradient(var(--ink) 1px, transparent 1px)`,
+            backgroundSize: "28px 28px",
+          }}
+        />
+
+        {/* Primary breathing orb (Brand purple/blue glow) - top center behind the login card */}
+        <div
+          className="animate-orb-1 absolute -top-[22%] left-1/2 size-[580px] rounded-full blur-[105px] sm:size-[700px]"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in oklab, var(--brand) 34%, transparent) 0%, color-mix(in oklab, var(--brand) 10%, transparent) 48%, transparent 70%)",
+          }}
+        />
+
+        {/* Secondary breathing orb (Accent green/teal glow) - bottom right */}
+        <div
+          className="animate-orb-2 absolute -bottom-[16%] -right-[8%] size-[480px] rounded-full blur-[95px] sm:size-[560px]"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in oklab, var(--accent) 28%, transparent) 0%, color-mix(in oklab, var(--accent) 8%, transparent) 52%, transparent 70%)",
+          }}
+        />
+
+        {/* Tertiary breathing orb (Warm amber glow) - bottom left */}
+        <div
+          className="animate-orb-3 absolute -bottom-[18%] -left-[10%] size-[420px] rounded-full blur-[90px] sm:size-[500px]"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in oklab, var(--amber) 22%, transparent) 0%, color-mix(in oklab, var(--amber) 6%, transparent) 48%, transparent 68%)",
+          }}
+        />
+      </div>
+
       {/* Top minimal header */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-8">
+      <header className="relative z-10 flex h-14 shrink-0 items-center justify-between border-b border-border bg-card/85 backdrop-blur-md px-4 md:px-8">
         <div className="flex items-center gap-2.5">
           <div className="grid size-8 shrink-0 place-items-center rounded-md bg-brand text-brand-foreground font-display font-extrabold text-base shadow-xs">
             u.
@@ -198,7 +234,7 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Centered Login View - strictly non-scrollable */}
-      <main className="flex flex-1 items-center justify-center px-4 py-2 min-h-0">
+      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-2 min-h-0">
         <div className="w-full max-w-[430px]">
           {/* Glass Card */}
           <div className="glass rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xl">
@@ -409,27 +445,11 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
               </form>
             )}
           </div>
-
-          {/* Program features highlight pill row */}
-          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card/60 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground shadow-2xs">
-              <BookOpen className="size-2.5 text-brand" />
-              8 ICT Modules
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card/60 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground shadow-2xs">
-              <MapPin className="size-2.5 text-accent" />
-              Kuwadzana · Chitungwiza · Warren Park
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card/60 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground shadow-2xs">
-              <BarChart3 className="size-2.5 text-amber" />
-              Live M&E Metrics
-            </span>
-          </div>
         </div>
       </main>
 
       {/* Minimal bottom footer */}
-      <footer className="flex h-9 shrink-0 items-center justify-center border-t border-border/60 bg-card/40 px-4 text-[10px] text-muted-foreground">
+      <footer className="relative z-10 flex h-9 shrink-0 items-center justify-center border-t border-border/60 bg-card/60 backdrop-blur-xs px-4 text-[10px] text-muted-foreground">
         <span>Protected training portal for accredited Uncommon facilitators and educators.</span>
       </footer>
     </div>

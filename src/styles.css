@@ -111,6 +111,54 @@
   button:active { transform: scale(.97); }
 }
 
+@keyframes orb-breathe-1 {
+  0%, 100% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(-50%, -18px) scale(1.18);
+    opacity: 0.85;
+  }
+}
+
+@keyframes orb-breathe-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1.05);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(-20px, 15px) scale(0.92);
+    opacity: 0.75;
+  }
+}
+
+@keyframes orb-breathe-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(0.95);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(18px, 18px) scale(1.12);
+    opacity: 0.65;
+  }
+}
+
+.animate-orb-1 {
+  animation: orb-breathe-1 11s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-orb-2 {
+  animation: orb-breathe-2 14s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-orb-3 {
+  animation: orb-breathe-3 9s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
 @media print {
   header, footer, button, nav { display: none !important; }
   .bg-scene { background: var(--card) !important; }
