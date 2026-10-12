@@ -104,3 +104,110 @@ export const reports = [
   { id: "r4", name: "Pre / Post Competency Deltas", period: "Term 3 2026", type: "Assessment Report", generated: "11 Nov 2026" },
   { id: "r5", name: "Trainer Facilitation Log", period: "Term 3 2026", type: "Facilitator Audit", generated: "15 Nov 2026" },
 ];
+
+export type LabQuarterlyAudit = {
+  id: string;
+  center: (typeof LAB_CENTERS)[number];
+  quarter: string;
+  auditDate: string;
+  auditor: string;
+  // Laptops inventory & state
+  initialLaptops: number;
+  functionalLaptops: number;
+  faultyLaptops: number;
+  missingLaptops: number;
+  laptopFaultDetails: string;
+  // Chargers & accessories
+  initialChargers: number;
+  functionalChargers: number;
+  faultyChargers: number;
+  missingChargers: number;
+  // Solar & energy performance
+  solarSystemType: string;
+  inverterStatus: "Optimal" | "Operational" | "Warning" | "Faulty";
+  batteryHealthPct: number;
+  avgDailyYieldKwh: number;
+  backupRuntimeHours: number;
+  solarFaults: string;
+  cleaningAndMaintenanceDone: boolean;
+  notes: string;
+  status: "Verified" | "Action Required" | "Pending Review";
+};
+
+export const initialLabAudits: LabQuarterlyAudit[] = [
+  {
+    id: "la-kwd-q3",
+    center: "Kuwadzana Hub Lab",
+    quarter: "Q3 2026",
+    auditDate: "06 Oct 2026",
+    auditor: "Simba",
+    initialLaptops: 30,
+    functionalLaptops: 28,
+    faultyLaptops: 2,
+    missingLaptops: 0,
+    laptopFaultDetails: "1 Dell unit with RAM seat error (beeps on boot); 1 laptop with sticky enter key. Both tagged for IT repair.",
+    initialChargers: 30,
+    functionalChargers: 29,
+    faultyChargers: 1,
+    missingChargers: 0,
+    solarSystemType: "5kVA Hybrid Solar Inverter + ZESA Auto Generator ATS",
+    inverterStatus: "Optimal",
+    batteryHealthPct: 94,
+    avgDailyYieldKwh: 19.4,
+    backupRuntimeHours: 6.2,
+    solarFaults: "Inverter operating without error. Generator auto-start relay tested Oct 2.",
+    cleaningAndMaintenanceDone: true,
+    notes: "Lab clean and fully organized. Replacement 65W Dell adapter requested.",
+    status: "Verified",
+  },
+  {
+    id: "la-cht-q3",
+    center: "Chitungwiza Hub Lab",
+    quarter: "Q3 2026",
+    auditDate: "08 Oct 2026",
+    auditor: "Diana Dumbu",
+    initialLaptops: 35,
+    functionalLaptops: 34,
+    faultyLaptops: 1,
+    missingLaptops: 0,
+    laptopFaultDetails: "1 HP unit trackpad unresponsive; currently connected to external USB optical mouse, fully usable.",
+    initialChargers: 35,
+    functionalChargers: 34,
+    faultyChargers: 1,
+    missingChargers: 0,
+    solarSystemType: "5kVA Solar Hybrid + 48V Lithium Iron Phosphate (LiFePO4) 10.2kWh",
+    inverterStatus: "Optimal",
+    batteryHealthPct: 98,
+    avgDailyYieldKwh: 22.8,
+    backupRuntimeHours: 7.5,
+    solarFaults: "Zero fault codes logged. Solar arrays cleaned and inverter heat sink vacuumed Oct 1.",
+    cleaningAndMaintenanceDone: true,
+    notes: "Excellent power stability. Batteries remained above 72% throughout 4-hour morning load shedding.",
+    status: "Verified",
+  },
+  {
+    id: "la-wp-q3",
+    center: "Warren Park Hub Lab",
+    quarter: "Q3 2026",
+    auditDate: "05 Oct 2026",
+    auditor: "Anesu Muchirewesi",
+    initialLaptops: 28,
+    functionalLaptops: 27,
+    faultyLaptops: 1,
+    missingLaptops: 0,
+    laptopFaultDetails: "1 Lenovo ThinkCentre station CMOS battery expired (losing bios time upon power off). Replacement battery ordered.",
+    initialChargers: 28,
+    functionalChargers: 28,
+    faultyChargers: 0,
+    missingChargers: 0,
+    solarSystemType: "5kVA Starlink-Dedicated Solar Array + 10kVA Lithium Battery Bank",
+    inverterStatus: "Optimal",
+    batteryHealthPct: 96,
+    avgDailyYieldKwh: 18.2,
+    backupRuntimeHours: 6.8,
+    solarFaults: "String circuit breakers and surge protection modules inspected and certified.",
+    cleaningAndMaintenanceDone: true,
+    notes: "High reliability. Starlink satellite connection runs 24/7 without interruption.",
+    status: "Verified",
+  },
+];

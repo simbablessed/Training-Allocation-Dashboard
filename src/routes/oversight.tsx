@@ -136,7 +136,7 @@ const DEFAULT_DIRECTIVES = [
 ];
 
 function ManagerOversightPage() {
-  const { cohorts, sessions, settings } = useTraining();
+  const { cohorts, sessions, settings, labAudits } = useTraining();
   const { userName, userRole } = useAppAuth();
 
   const [activeTab, setActiveTab] = useState<TabType>("labs");
@@ -150,6 +150,7 @@ function ManagerOversightPage() {
     return LAB_CENTERS.map((center) => {
       const centerCohorts = cohorts.filter((c) => c.center === center);
       const centerSessions = sessions.filter((s) => s.center === center);
+      const audit = labAudits.find((a) => a.center === center);
       const count = centerCohorts.length;
 
       const totalEducators = centerCohorts.reduce((sum, c) => sum + c.educators, 0);
@@ -163,12 +164,13 @@ function ManagerOversightPage() {
         ? Math.round(centerCohorts.reduce((sum, c) => sum + c.post, 0) / count)
         : 0;
 
-      const seats =
+      const seats = audit?.initialLaptops ?? (
         center === "Kuwadzana Hub Lab"
           ? 30
           : center === "Chitungwiza Hub Lab"
             ? 35
-            : 28;
+            : 28
+      );
 
       const capacityUtilization = Math.min(
         100,
@@ -182,8 +184,9 @@ function ManagerOversightPage() {
             ? "Diana Dumbu"
             : "Anesu Muchirewesi (Manager Dual-Role)";
 
-      const powerSource =
-        center === "Kuwadzana Hub Lab"
+      const powerSource = audit
+        ? `${audit.solarSystemType} (${audit.batteryHealthPct}% Battery)`
+        : center === "Kuwadzana Hub Lab"
           ? "ZESA Grid + Auto Generator"
           : center === "Chitungwiza Hub Lab"
             ? "Hybrid Inverter + Solar Backup"
@@ -196,12 +199,13 @@ function ManagerOversightPage() {
             ? "High-speed 4G LTE Router"
             : "Starlink Satellite Terminal";
 
-      const hardwareStatus =
-        center === "Kuwadzana Hub Lab"
-          ? "30/30 Dell PCs Ready"
+      const hardwareStatus = audit
+        ? `${audit.functionalLaptops}/${audit.initialLaptops} Laptops Active (${audit.faultyLaptops} repair)`
+        : center === "Kuwadzana Hub Lab"
+          ? "28/30 Laptops Ready"
           : center === "Chitungwiza Hub Lab"
-            ? "35/35 HP AiO Ready"
-            : "28/28 Lenovo PCs Ready";
+            ? "34/35 Laptops Ready"
+            : "27/28 Laptops Ready";
 
       const activeIssues =
         center === "Chitungwiza Hub Lab"

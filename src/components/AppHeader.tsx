@@ -245,13 +245,13 @@ export function AppHeader() {
               {/* Role Switcher in Profile Menu */}
               <div className="rounded-xl border border-border/80 bg-background p-2.5 space-y-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block px-1">
-                  Switch Active Role View
+                  Active Workspace Role
                 </span>
                 <div className="grid grid-cols-1 gap-1">
                   {[
-                    { name: "Anesu Muchirewesi", label: "👑 Anesu (Manager · Warren Park)" },
-                    { name: "Diana Dumbu", label: "👩‍🏫 Diana (Facilitator · Chitungwiza)" },
-                    { name: "Simba", label: "👨‍🏫 Simba (Facilitator · Kuwadzana)" },
+                    { name: "Anesu Muchirewesi", label: "Anesu Muchirewesi", sub: "Training Manager (Warren Park Lead)" },
+                    { name: "Diana Dumbu", label: "Diana Dumbu", sub: "Resident Facilitator (Chitungwiza)" },
+                    { name: "Simba", label: "Simba", sub: "Resident Facilitator (Kuwadzana)" },
                   ].map((p) => (
                     <button
                       key={p.name}
@@ -261,14 +261,23 @@ export function AppHeader() {
                         setPanel(null);
                         navigate({ to: "/" });
                       }}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
                         activePersona === p.name
                           ? "bg-brand text-brand-foreground shadow-xs"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-foreground hover:bg-muted"
                       }`}
                     >
-                      <span>{p.label}</span>
-                      {activePersona === p.name && <span className="text-[10px] font-bold">Active</span>}
+                      <div>
+                        <p className="leading-tight">{p.label}</p>
+                        <p className={`text-[10px] font-normal ${activePersona === p.name ? "text-brand-foreground/80" : "text-muted-foreground"}`}>
+                          {p.sub}
+                        </p>
+                      </div>
+                      {activePersona === p.name && (
+                        <span className="rounded bg-brand-foreground/20 px-1.5 py-0.5 text-[10px] font-bold shrink-0">
+                          Active
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>

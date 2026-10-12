@@ -1,5 +1,13 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import { cohorts as defaultCohorts, sessions as defaultSessions, type Cohort, type Session, type Tier } from "@/data/mis";
+import {
+  cohorts as defaultCohorts,
+  sessions as defaultSessions,
+  initialLabAudits,
+  type Cohort,
+  type Session,
+  type Tier,
+  type LabQuarterlyAudit,
+} from "@/data/mis";
 import { useAppAuth } from "@/lib/clerk/provider";
 import {
   fetchTrainingDataFn,
@@ -29,6 +37,7 @@ type TrainingState = {
   cohorts: Cohort[];
   sessions: Session[];
   settings: ProgrammeSettings;
+  labAudits: LabQuarterlyAudit[];
 };
 
 const initial: TrainingState = {
@@ -42,6 +51,7 @@ const initial: TrainingState = {
     scoreTarget: 70,
     completionTarget: 6,
   },
+  labAudits: initialLabAudits,
 };
 
 export type Store = TrainingState & {
@@ -50,6 +60,9 @@ export type Store = TrainingState & {
   setCohorts: React.Dispatch<React.SetStateAction<Cohort[]>>;
   setSessions: React.Dispatch<React.SetStateAction<Session[]>>;
   setSettings: React.Dispatch<React.SetStateAction<ProgrammeSettings>>;
+  setLabAudits: React.Dispatch<React.SetStateAction<LabQuarterlyAudit[]>>;
+  updateLabAudit: (id: string, updates: Partial<LabQuarterlyAudit>) => void;
+  addLabAudit: (audit: Omit<LabQuarterlyAudit, "id">) => LabQuarterlyAudit;
   updateCohort: (
     id: string,
     updates: Partial<{
@@ -96,7 +109,7 @@ export type Store = TrainingState & {
 };
 
 const TrainingContext = createContext<Store | null>(null);
-const KEY = "tutortrack-training-v6";
+const KEY = "tutortrack-training-v7";
 
 export function TrainingProvider({ children }: { children: ReactNode }) {
   const auth = useAppAuth();
@@ -115,6 +128,7 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
   const [cohortRows, setCohorts] = useState<Cohort[]>(initial.cohorts);
   const [sessionRows, setSessions] = useState<Session[]>(initial.sessions);
   const [settings, setSettings] = useState<ProgrammeSettings>(initial.settings);
+  const [labAudits, setLabAudits] = useState<LabQuarterlyAudit[]>(initial.labAudits);
   const [isNeonConnected, setIsNeonConnected] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [ready, setReady] = useState(false);
@@ -152,6 +166,7 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
         if (Array.isArray(saved.cohorts)) setCohorts(saved.cohorts);
         if (Array.isArray(saved.sessions)) setSessions(saved.sessions);
         if (saved.settings) setSettings({ ...initial.settings, ...saved.settings });
+        if (Array.isArray(saved.labAudits) && saved.labAudits.length > 0) setLabAudits(saved.labAudits);
       }
     } catch {
       // Fallback
@@ -167,12 +182,49 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(
         KEY,
-        JSON.stringify({ cohorts: cohortRows, sessions: sessionRows, settings })
+        JSON.stringify({ cohorts: cohortRows, sessions: sessionRows, settings, labAudits })
       );
     } catch {
       // Private browsing quota guard
     }
-  }, [cohortRows, sessionRows, settings, ready]);
+  }, [cohortRows, sessionRows, settings, labAudits, ready]);
+
+  const updateLabAudit = useCallback(
+    (id: string, updates: Partial<LabQuarterlyAudit>) => {
+      setLabAudits((prev) => {
+        const next = prev.map((a) => (a.id === id ? { ...a, ...updates } : a));
+        try {
+          localStorage.setItem(
+            KEY,
+            JSON.stringify({ cohorts: cohortRows, sessions: sessionRows, settings, labAudits: next })
+          );
+        } catch {}
+        return next;
+      });
+    },
+    [cohortRows, sessionRows, settings]
+  );
+
+  const addLabAudit = useCallback(
+    (audit: Omit<LabQuarterlyAudit, "id">) => {
+      const newRecord: LabQuarterlyAudit = {
+        ...audit,
+        id: `la-${Date.now()}`,
+      };
+      setLabAudits((prev) => {
+        const next = [newRecord, ...prev];
+        try {
+          localStorage.setItem(
+            KEY,
+            JSON.stringify({ cohorts: cohortRows, sessions: sessionRows, settings, labAudits: next })
+          );
+        } catch {}
+        return next;
+      });
+      return newRecord;
+    },
+    [cohortRows, sessionRows, settings]
+  );
 
   // Mutation: Update cohort in Neon
   const updateCohort = useCallback(
@@ -485,6 +537,10 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
         cohorts: cohortRows,
         sessions: sessionRows,
         settings,
+        labAudits,
+        setLabAudits,
+        updateLabAudit,
+        addLabAudit,
         setCohorts,
         setSessions,
         setSettings,

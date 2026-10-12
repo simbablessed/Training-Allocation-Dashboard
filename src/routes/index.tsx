@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeading } from "@/components/PageHeading";
 import { StatusPill } from "@/components/StatusPill";
-import { kpiTrend, modules, tiers, LAB_CENTERS } from "@/data/mis";
+import { kpiTrend, modules, tiers, LAB_CENTERS, type LabQuarterlyAudit } from "@/data/mis";
 import { getKpis, useTraining, type PersonaType } from "@/lib/training-store";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,21 +10,25 @@ import {
   Building2,
   Users,
   ArrowUpRight,
-  Sparkles,
-  Star,
   Laptop,
-  Wifi,
-  SunMedium,
-  MapPin,
-  Clock,
+  Sun,
+  BatteryCharging,
+  Zap,
+  Plug,
+  Wrench,
   CheckCircle2,
+  AlertCircle,
   AlertTriangle,
   GraduationCap,
   CalendarDays,
-  FileText,
   UserCheck,
-  BookOpen,
-  Award,
+  FileText,
+  Clock,
+  MapPin,
+  Edit3,
+  Plus,
+  X,
+  Check,
   Activity,
   Layers,
 } from "lucide-react";
@@ -36,12 +40,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Role-tailored dashboard for Teacher Training Manager Anesu Muchirewesi and resident facilitators Simba and Diana Dumbu.",
+          "Role-tailored operations dashboard for Teacher Training Manager Anesu Muchirewesi and resident facilitators Simba and Diana Dumbu.",
       },
       { property: "og:title", content: "Training Allocation Dashboard | TutorTrack" },
       {
         property: "og:description",
-        content: "Role-tailored educator training allocation and M&E performance tracking.",
+        content: "Role-tailored educator training allocation, lab inventory, and solar M&E tracking.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -53,82 +57,98 @@ export const Route = createFileRoute("/")({
 const toneClass = { accent: "text-accent", amber: "text-amber", brand: "text-brand" } as const;
 
 function Dashboard() {
-  const { cohorts, sessions: bookings, settings, activePersona, setActivePersona } = useTraining();
+  const {
+    cohorts,
+    sessions: bookings,
+    settings,
+    activePersona,
+    setActivePersona,
+    labAudits,
+    updateLabAudit,
+    addLabAudit,
+  } = useTraining();
+
   const kpis = getKpis(cohorts, bookings, settings);
   const topModules = modules.filter((m) => ["M1", "M3", "M7", "M5", "M8"].includes(m.code));
 
-  // Quick action feedback toast simulation
+  // Notification toast state
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Modal state for quarterly audit editing
+  const [editingAudit, setEditingAudit] = useState<LabQuarterlyAudit | null>(null);
 
   function triggerNotice(msg: string) {
     setActionNotice(msg);
     setTimeout(() => setActionNotice(null), 3500);
   }
 
+  function handleSaveAudit(updated: LabQuarterlyAudit) {
+    updateLabAudit(updated.id, updated);
+    setEditingAudit(null);
+    triggerNotice(`Quarterly audit for ${updated.center} (${updated.quarter}) updated successfully.`);
+  }
+
   return (
-    <>
-      {/* 1. Global Persona Switcher Banner: Easily toggle between Anesu (Manager), Diana (Chitungwiza), and Simba (Kuwadzana) */}
-      <div className="mb-6 flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
-            <Layers className="size-4" />
+    <div className="space-y-6">
+      {/* 1. Sleek, Professional Workspace Switcher (Zero Emojis, Native Segmented Control) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/70 pb-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="size-2 rounded-full bg-accent animate-pulse" />
+          <span className="font-semibold uppercase tracking-wider text-[11px]">Active Perspective:</span>
+          <span className="font-bold text-foreground">
+            {activePersona === "Anesu Muchirewesi"
+              ? "Training Manager (Warren Park Lead)"
+              : activePersona === "Diana Dumbu"
+                ? "Resident Facilitator (Chitungwiza Hub)"
+                : "Resident Facilitator (Kuwadzana Hub)"}
           </span>
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Dashboard View Mode:
-            </span>
-            <p className="text-xs font-semibold text-foreground">
-              {activePersona === "Anesu Muchirewesi"
-                ? "👑 Manager Executive View (Anesu Muchirewesi · Warren Park Dual-Role)"
-                : activePersona === "Diana Dumbu"
-                  ? "👩‍🏫 Resident Facilitator View (Diana Dumbu · Chitungwiza Hub Lab)"
-                  : "👨‍🏫 Resident Facilitator View (Simba · Kuwadzana Hub Lab)"}
-            </p>
-          </div>
         </div>
 
-        {/* Persona Toggle Buttons */}
-        <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-muted/40 p-1">
+        {/* Clean Segmented Pill Buttons */}
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-2xs">
           <button
             type="button"
             onClick={() => setActivePersona("Anesu Muchirewesi")}
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
               activePersona === "Anesu Muchirewesi"
                 ? "bg-brand text-brand-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-card hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
-            <span>👑 Anesu (Manager)</span>
+            <ShieldCheck className="size-3.5" />
+            <span>Anesu Muchirewesi (Manager)</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActivePersona("Diana Dumbu")}
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
               activePersona === "Diana Dumbu"
                 ? "bg-brand text-brand-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-card hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
-            <span>👩‍🏫 Diana (Chitungwiza)</span>
+            <Building2 className="size-3.5" />
+            <span>Diana Dumbu (Chitungwiza)</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActivePersona("Simba")}
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
               activePersona === "Simba"
                 ? "bg-brand text-brand-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-card hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
-            <span>👨‍🏫 Simba (Kuwadzana)</span>
+            <Building2 className="size-3.5" />
+            <span>Simba (Kuwadzana)</span>
           </button>
         </div>
       </div>
 
       {actionNotice && (
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-2.5 text-xs font-semibold text-accent">
+        <div className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-2.5 text-xs font-semibold text-accent">
           <span className="flex items-center gap-2">
             <CheckCircle2 className="size-4 shrink-0" />
             {actionNotice}
@@ -143,7 +163,7 @@ function Dashboard() {
         </div>
       )}
 
-      {/* 2. Render Tailored Dashboard Based on Persona */}
+      {/* 2. Main Role View */}
       {activePersona === "Anesu Muchirewesi" ? (
         <ManagerDashboardView
           kpis={kpis}
@@ -151,28 +171,215 @@ function Dashboard() {
           bookings={bookings}
           settings={settings}
           topModules={topModules}
+          labAudits={labAudits}
+          onOpenAuditModal={(audit) => setEditingAudit(audit)}
           triggerNotice={triggerNotice}
         />
       ) : activePersona === "Diana Dumbu" ? (
         <DianaFacilitatorView
           cohorts={cohorts}
           bookings={bookings}
+          labAudits={labAudits}
+          onOpenAuditModal={(audit) => setEditingAudit(audit)}
           triggerNotice={triggerNotice}
         />
       ) : (
         <SimbaFacilitatorView
           cohorts={cohorts}
           bookings={bookings}
+          labAudits={labAudits}
+          onOpenAuditModal={(audit) => setEditingAudit(audit)}
           triggerNotice={triggerNotice}
         />
       )}
-    </>
+
+      {/* 3. Modal for Recording & Updating Quarterly Lab Hardware & Solar Audits */}
+      {editingAudit && (
+        <QuarterlyAuditModal
+          audit={editingAudit}
+          onClose={() => setEditingAudit(null)}
+          onSave={handleSaveAudit}
+        />
+      )}
+    </div>
   );
 }
 
 /* =========================================================================
-   VIEW 1: ANESU MUCHIREWESI — TEACHER TRAINING MANAGER EXECUTIVE DASHBOARD
-   Includes Program-wide KPIs, Oversight of Simba & Diana, and Anesu's Warren Park Dual-Role
+   COMPONENT: LAB ASSET INVENTORY & SOLAR QUARTERLY AUDIT CARD
+   Tracks initial laptops, functional/faulty/missing, chargers, and solar performance
+   ========================================================================= */
+function LabAssetAndSolarAuditCard({
+  audit,
+  onOpenModal,
+}: {
+  audit?: LabQuarterlyAudit;
+  onOpenModal: (audit: LabQuarterlyAudit) => void;
+}) {
+  if (!audit) return null;
+
+  const availabilityRate = Math.round(
+    (audit.functionalLaptops / Math.max(1, audit.initialLaptops)) * 100
+  );
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-border/70">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
+              <Laptop className="size-4" />
+            </span>
+            <h3 className="font-display text-sm font-bold text-foreground">
+              {audit.center} — Quarterly Hardware & Solar Audit
+            </h3>
+            <span className="rounded bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
+              {audit.quarter}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Verified by {audit.auditor} on {audit.auditDate} · Status:{" "}
+            <span className="font-semibold text-accent">{audit.status}</span>
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Edit3 className="size-3.5 text-brand" />}
+          onClick={() => onOpenModal(audit)}
+          className="text-xs shrink-0"
+        >
+          Update Quarterly Audit
+        </Button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Left Column: Laptops & Chargers Asset Register */}
+        <div className="space-y-3.5 rounded-xl border border-border/70 bg-background p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Laptop className="size-3.5 text-brand" />
+              Laptops & Power Adapters
+            </span>
+            <span className="text-xs font-bold text-accent">
+              {availabilityRate}% Operational
+            </span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Initial</p>
+              <p className="font-display text-base font-extrabold text-foreground">{audit.initialLaptops}</p>
+              <p className="text-[10px] text-muted-foreground">Baseline</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Working</p>
+              <p className="font-display text-base font-extrabold text-accent">{audit.functionalLaptops}</p>
+              <p className="text-[10px] text-muted-foreground">Active in Lab</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Faulty</p>
+              <p className={`font-display text-base font-extrabold ${audit.faultyLaptops ? "text-amber" : "text-foreground"}`}>
+                {audit.faultyLaptops}
+              </p>
+              <p className="text-[10px] text-muted-foreground">Under Repair</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Missing</p>
+              <p className={`font-display text-base font-extrabold ${audit.missingLaptops ? "text-destructive" : "text-foreground"}`}>
+                {audit.missingLaptops}
+              </p>
+              <p className="text-[10px] text-muted-foreground">Unaccounted</p>
+            </div>
+          </div>
+
+          {/* Chargers Strip */}
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/15 px-3 py-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Plug className="size-3.5 text-muted-foreground" />
+              <span className="font-semibold text-foreground">Chargers & Adapters:</span>
+            </div>
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="text-accent font-semibold">{audit.functionalChargers} working</span>
+              <span>·</span>
+              <span className={audit.faultyChargers ? "text-amber font-semibold" : "text-muted-foreground"}>
+                {audit.faultyChargers} faulty
+              </span>
+              <span>·</span>
+              <span className={audit.missingChargers ? "text-destructive font-semibold" : "text-muted-foreground"}>
+                {audit.missingChargers} missing
+              </span>
+            </div>
+          </div>
+
+          {/* Fault Details Log */}
+          <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5 text-xs">
+            <p className="font-bold text-foreground text-[11px] mb-0.5 flex items-center gap-1.5">
+              <Wrench className="size-3 text-brand" />
+              Hardware Fault & Repair Notes:
+            </p>
+            <p className="text-muted-foreground text-[11px] leading-relaxed">
+              {audit.laptopFaultDetails || "No hardware faults reported for this quarter."}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Column: Solar Power & Energy System Monitoring */}
+        <div className="space-y-3.5 rounded-xl border border-border/70 bg-background p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Sun className="size-3.5 text-amber" />
+              Solar & Energy Performance
+            </span>
+            <span className="text-xs font-bold text-accent flex items-center gap-1">
+              <BatteryCharging className="size-3.5" />
+              {audit.batteryHealthPct}% Battery Health
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Inverter State</p>
+              <p className="font-display text-sm font-extrabold text-foreground">{audit.inverterStatus}</p>
+              <p className="text-[10px] text-accent">Zero Trips</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Daily Solar Yield</p>
+              <p className="font-display text-sm font-extrabold text-foreground">{audit.avgDailyYieldKwh} kWh</p>
+              <p className="text-[10px] text-muted-foreground">Average</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Backup Runtime</p>
+              <p className="font-display text-sm font-extrabold text-foreground">{audit.backupRuntimeHours} hrs</p>
+              <p className="text-[10px] text-muted-foreground">Load Shedding</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/60 bg-muted/15 px-3 py-2 text-xs">
+            <p className="font-semibold text-foreground text-[11px]">System Specification:</p>
+            <p className="text-muted-foreground text-[11px] mt-0.5">{audit.solarSystemType}</p>
+          </div>
+
+          {/* Solar Faults & Maintenance Log */}
+          <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5 text-xs">
+            <p className="font-bold text-foreground text-[11px] mb-0.5 flex items-center gap-1.5">
+              <Zap className="size-3 text-amber" />
+              Solar Maintenance & Fault Log:
+            </p>
+            <p className="text-muted-foreground text-[11px] leading-relaxed">
+              {audit.solarFaults || "System running normally; routine cleaning performed."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   VIEW 1: TEACHER TRAINING MANAGER (ANESU MUCHIREWESI)
+   Executive Program Oversight, Simba/Diana Supervision, Warren Park Dual-Role & 3-Hub Hardware Register
    ========================================================================= */
 function ManagerDashboardView({
   kpis,
@@ -180,6 +387,8 @@ function ManagerDashboardView({
   bookings,
   settings,
   topModules,
+  labAudits,
+  onOpenAuditModal,
   triggerNotice,
 }: {
   kpis: ReturnType<typeof getKpis>;
@@ -187,10 +396,18 @@ function ManagerDashboardView({
   bookings: any[];
   settings: any;
   topModules: any[];
+  labAudits: LabQuarterlyAudit[];
+  onOpenAuditModal: (a: LabQuarterlyAudit) => void;
   triggerNotice: (m: string) => void;
 }) {
   const anesuWarrenParkSessions = bookings.filter((s) => s.facilitator === "Anesu Muchirewesi");
   const anesuWarrenParkCohorts = cohorts.filter((c) => c.facilitator === "Anesu Muchirewesi");
+  const warrenParkAudit = labAudits.find((a) => a.center === "Warren Park Hub Lab");
+
+  const totalInitialLaptops = labAudits.reduce((sum, a) => sum + a.initialLaptops, 0);
+  const totalFunctionalLaptops = labAudits.reduce((sum, a) => sum + a.functionalLaptops, 0);
+  const totalFaultyLaptops = labAudits.reduce((sum, a) => sum + a.faultyLaptops, 0);
+  const totalMissingLaptops = labAudits.reduce((sum, a) => sum + a.missingLaptops, 0);
 
   return (
     <div className="space-y-6">
@@ -244,6 +461,100 @@ function ManagerDashboardView({
         </div>
       </div>
 
+      {/* Cross-Hub Laptop & Solar Quarterly Health Cockpit */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-border/70">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Laptop className="size-4" />
+              </span>
+              <h2 className="font-display text-base font-bold text-foreground">
+                Cross-Hub Hardware Asset & Solar Resilience Register
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Continuous quarterly monitoring across Kuwadzana, Chitungwiza, and Warren Park hubs.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="rounded-lg border border-border bg-muted/30 px-3 py-1 text-xs font-semibold text-foreground">
+              Total Hardware: <strong className="text-accent">{totalFunctionalLaptops}</strong> / {totalInitialLaptops} Operational
+            </span>
+          </div>
+        </div>
+
+        {/* Aggregate Stats */}
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Total Initial Laptops</p>
+            <p className="font-display text-xl font-extrabold text-foreground">{totalInitialLaptops}</p>
+            <p className="text-[10px] text-muted-foreground">Allocated across 3 hubs</p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Currently Functional</p>
+            <p className="font-display text-xl font-extrabold text-accent">{totalFunctionalLaptops}</p>
+            <p className="text-[10px] text-accent">95.7% Availability</p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Reported Faults</p>
+            <p className="font-display text-xl font-extrabold text-amber">{totalFaultyLaptops}</p>
+            <p className="text-[10px] text-muted-foreground">Logged for IT repair</p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Missing Units</p>
+            <p className="font-display text-xl font-extrabold text-foreground">{totalMissingLaptops}</p>
+            <p className="text-[10px] text-accent">100% Accounted For</p>
+          </div>
+        </div>
+
+        {/* Hub-by-Hub Summary Cards */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {labAudits.map((a) => (
+            <div key={a.id} className="rounded-xl border border-border bg-background p-3.5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                  <span className="font-display text-xs font-bold text-foreground">{a.center.replace(" Hub Lab", "")}</span>
+                  <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                    {a.quarter}
+                  </span>
+                </div>
+                <div className="mt-2.5 space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Laptops:</span>
+                    <span className="font-semibold text-foreground">
+                      {a.functionalLaptops} / {a.initialLaptops} working
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Faults:</span>
+                    <span className={a.faultyLaptops ? "font-semibold text-amber" : "text-muted-foreground"}>
+                      {a.faultyLaptops} ({a.faultyChargers} chargers)
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Solar Battery:</span>
+                    <span className="font-semibold text-accent">{a.batteryHealthPct}% health ({a.backupRuntimeHours}h runtime)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 pt-2 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">Auditor: {a.auditor}</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenAuditModal(a)}
+                  className="text-xs font-semibold text-brand hover:underline"
+                >
+                  Edit Audit →
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Facilitator Operations Spotlight: Monitoring Diana Dumbu & Simba */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/70">
@@ -277,11 +588,11 @@ function ManagerDashboardView({
                   <div className="flex items-center gap-2">
                     <h3 className="font-display text-sm font-bold text-foreground">Diana Dumbu</h3>
                     <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent">
-                      ⭐ 4.96 Rating
+                      4.96 Rating
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Resident Facilitator · 📍 Chitungwiza Hub Lab
+                    Resident Facilitator · Chitungwiza Hub Lab
                   </p>
                 </div>
               </div>
@@ -309,7 +620,7 @@ function ManagerDashboardView({
               <div>
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Verified Labs</p>
                 <p className="font-display text-sm font-bold text-brand">24 / 26</p>
-                <p className="text-[10px] text-muted-foreground">92% audit pass</p>
+                <p className="text-[10px] text-muted-foreground">92% pass rate</p>
               </div>
             </div>
 
@@ -334,11 +645,11 @@ function ManagerDashboardView({
                   <div className="flex items-center gap-2">
                     <h3 className="font-display text-sm font-bold text-foreground">Simba</h3>
                     <span className="rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold text-brand">
-                      ⭐ 4.86 Rating
+                      4.86 Rating
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Resident Facilitator · 📍 Kuwadzana Hub Lab
+                    Resident Facilitator · Kuwadzana Hub Lab
                   </p>
                 </div>
               </div>
@@ -366,7 +677,7 @@ function ManagerDashboardView({
               <div>
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Verified Labs</p>
                 <p className="font-display text-sm font-bold text-brand">22 / 24</p>
-                <p className="text-[10px] text-muted-foreground">91% audit pass</p>
+                <p className="text-[10px] text-muted-foreground">91% pass rate</p>
               </div>
             </div>
 
@@ -451,128 +762,37 @@ function ManagerDashboardView({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 3 Hub Labs Readiness Strip */}
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-        <h3 className="font-display text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-          <Building2 className="size-4 text-brand" />
-          Hub Computer Labs Infrastructure Status
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-xl border border-border bg-muted/20 p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-xs font-bold text-foreground">Kuwadzana Hub Lab</span>
-              <span className="text-[10px] font-bold text-brand bg-brand/10 px-1.5 py-0.5 rounded">Lead: Simba</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">30 Dell OptiPlex · Fiber (50 Mbps) + Local Ka-Lite</p>
-            <p className="text-[11px] font-semibold text-accent mt-2 flex items-center gap-1">
-              <CheckCircle2 className="size-3" /> Grid + Auto Generator Operational
-            </p>
+        {/* Warren Park Asset & Solar Card */}
+        {warrenParkAudit && (
+          <div className="mt-4">
+            <LabAssetAndSolarAuditCard audit={warrenParkAudit} onOpenModal={onOpenAuditModal} />
           </div>
-
-          <div className="rounded-xl border border-border bg-muted/20 p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-xs font-bold text-foreground">Chitungwiza Hub Lab</span>
-              <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">Lead: Diana Dumbu</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">35 HP AiO · 4G LTE Gateway + Synology NAS</p>
-            <p className="text-[11px] font-semibold text-accent mt-2 flex items-center gap-1">
-              <CheckCircle2 className="size-3" /> Hybrid Solar Inverter (100%)
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-muted/20 p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-xs font-bold text-foreground">Warren Park Hub Lab</span>
-              <span className="text-[10px] font-bold text-brand bg-brand/10 px-1.5 py-0.5 rounded">Lead: Anesu (Manager)</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">28 Lenovo PCs · Starlink Satellite + Raspberry Pi</p>
-            <p className="text-[11px] font-semibold text-accent mt-2 flex items-center gap-1">
-              <CheckCircle2 className="size-3" /> 5kVA Solar & Lithium Battery Ready
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* KPI Trends & Module Completion Grid */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="glass rounded-xl p-5 lg:col-span-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-display text-[15px] font-semibold">Program Attendance & Competency Trends</h2>
-              <p className="text-[12px] text-muted-foreground">Tracking institutional progress across 14 training weeks</p>
-            </div>
-            <div className="flex items-center gap-4 text-[11px] font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-brand" />
-                Attendance
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-accent" />
-                Post-score
-              </span>
-            </div>
-          </div>
-          <div className="mt-6 flex h-44 items-end gap-2.5">
-            {kpiTrend.map((point) => (
-              <div key={point.week} className="flex flex-1 flex-col items-center gap-2">
-                <div className="flex h-32 w-full items-end justify-center gap-1">
-                  <div
-                    className={`w-3 rounded-t ${point.projected ? "bg-brand/40" : "bg-brand/80"}`}
-                    style={{ height: `${point.attendance}%` }}
-                  />
-                  <div
-                    className={`w-3 rounded-t ${point.projected ? "bg-accent/40" : "bg-accent/80"}`}
-                    style={{ height: `${point.postScore}%` }}
-                  />
-                </div>
-                <span className="text-[10px] text-muted-foreground">{point.week}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass rounded-xl p-5">
-          <h2 className="font-display text-[15px] font-semibold">Module Completion</h2>
-          <p className="text-[12px] text-muted-foreground">National ICT curriculum tracks</p>
-          <div className="mt-5 space-y-3.5">
-            {topModules.map((m) => (
-              <div key={m.code}>
-                <div className="flex justify-between text-[12px] font-medium">
-                  <span className="truncate pr-2">{m.code} · {m.name}</span>
-                  <span className="shrink-0 text-muted-foreground">{m.completion}%</span>
-                </div>
-                <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted">
-                  <div
-                    className={`h-full rounded-full ${m.completion >= 85 ? "bg-brand" : m.completion >= 70 ? "bg-accent" : "bg-amber"}`}
-                    style={{ width: `${m.completion}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
 /* =========================================================================
-   VIEW 2: DIANA DUMBU — RESIDENT FACILITATOR DASHBOARD (CHITUNGWIZA HUB LAB)
-   Tailored to Diana's schedule, Infants cohorts, Chitungwiza Lab specs & student gains
+   VIEW 2: DIANA DUMBU — RESIDENT FACILITATOR (CHITUNGWIZA HUB LAB)
    ========================================================================= */
 function DianaFacilitatorView({
   cohorts,
   bookings,
+  labAudits,
+  onOpenAuditModal,
   triggerNotice,
 }: {
   cohorts: any[];
   bookings: any[];
+  labAudits: LabQuarterlyAudit[];
+  onOpenAuditModal: (a: LabQuarterlyAudit) => void;
   triggerNotice: (m: string) => void;
 }) {
   const mySessions = bookings.filter((s) => s.facilitator === "Diana Dumbu");
   const myCohorts = cohorts.filter((c) => c.facilitator === "Diana Dumbu");
+  const chitungwizaAudit = labAudits.find((a) => a.center === "Chitungwiza Hub Lab");
 
   return (
     <div className="space-y-6">
@@ -599,7 +819,7 @@ function DianaFacilitatorView({
       {/* Diana's Personal Performance KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="glass rounded-xl p-5 border-l-4 border-l-brand">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">My Teaching Output</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Teaching Output</p>
           <p className="mt-2 font-display text-3xl font-extrabold text-foreground">48 hrs</p>
           <p className="mt-1.5 text-[11px] font-semibold text-brand">22 sessions logged (Term 3)</p>
         </div>
@@ -607,7 +827,7 @@ function DianaFacilitatorView({
         <div className="glass rounded-xl p-5 border-l-4 border-l-accent">
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Educator Rating</p>
           <p className="mt-2 font-display text-3xl font-extrabold text-accent">
-            ⭐ 4.96<span className="text-sm font-normal text-muted-foreground">/5.0</span>
+            4.96<span className="text-sm font-normal text-muted-foreground">/5.0</span>
           </p>
           <p className="mt-1.5 text-[11px] font-semibold text-accent">99.2% positive feedback (Top Rated)</p>
         </div>
@@ -621,44 +841,17 @@ function DianaFacilitatorView({
         <div className="glass rounded-xl p-5 border-l-4 border-l-accent">
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Verified Practical Labs</p>
           <p className="mt-2 font-display text-3xl font-extrabold text-foreground">24 / 26</p>
-          <p className="mt-1.5 text-[11px] font-semibold text-brand">38 1-on-1 mentorship clinics held</p>
+          <p className="mt-1.5 text-[11px] font-semibold text-brand">38 1-on-1 mentorship clinics</p>
         </div>
       </div>
 
-      {/* Resident Hub Lab Info Banner */}
-      <div className="rounded-2xl border border-accent/25 bg-accent/5 p-4.5 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground shadow-xs">
-              <Building2 className="size-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-display text-base font-bold text-foreground">
-                  Resident Hub: Chitungwiza Hub Lab
-                </h3>
-                <span className="rounded-full bg-accent/20 px-2.5 py-0.5 text-[10px] font-bold text-accent">
-                  Coordinator: Diana Dumbu
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                35 HP All-in-One PCs · 4G LTE Gateway + Synology NAS · Hybrid Solar Inverter (100% capacity).
-              </p>
-            </div>
-          </div>
+      {/* Quarterly Lab Hardware & Solar Audit Card for Chitungwiza */}
+      {chitungwizaAudit && (
+        <LabAssetAndSolarAuditCard audit={chitungwizaAudit} onOpenModal={onOpenAuditModal} />
+      )}
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-card px-3 py-1 text-xs font-bold text-accent">
-              <CheckCircle2 className="size-3.5" />
-              All 35 Stations Operational
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Schedule & Cohorts Grid */}
+      {/* Timetable & Cohorts */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        {/* Diana's Scheduled Sessions */}
         <div className="glass rounded-xl p-5 lg:col-span-2">
           <div className="flex items-center justify-between pb-3 border-b border-border/70">
             <div>
@@ -705,7 +898,6 @@ function DianaFacilitatorView({
           </div>
         </div>
 
-        {/* Assigned Classes */}
         <div className="glass rounded-xl p-5 space-y-4">
           <h2 className="font-display text-sm font-bold text-foreground">Assigned Chitungwiza Classes</h2>
           <div className="space-y-3">
@@ -738,20 +930,24 @@ function DianaFacilitatorView({
 }
 
 /* =========================================================================
-   VIEW 3: SIMBA — RESIDENT FACILITATOR DASHBOARD (KUWADZANA HUB LAB)
-   Tailored to Simba's schedule, STEAM/Scratch cohorts, Kuwadzana Lab specs & student gains
+   VIEW 3: SIMBA — RESIDENT FACILITATOR (KUWADZANA HUB LAB)
    ========================================================================= */
 function SimbaFacilitatorView({
   cohorts,
   bookings,
+  labAudits,
+  onOpenAuditModal,
   triggerNotice,
 }: {
   cohorts: any[];
   bookings: any[];
+  labAudits: LabQuarterlyAudit[];
+  onOpenAuditModal: (a: LabQuarterlyAudit) => void;
   triggerNotice: (m: string) => void;
 }) {
   const mySessions = bookings.filter((s) => s.facilitator === "Simba");
   const myCohorts = cohorts.filter((c) => c.facilitator === "Simba");
+  const kuwadzanaAudit = labAudits.find((a) => a.center === "Kuwadzana Hub Lab");
 
   return (
     <div className="space-y-6">
@@ -778,7 +974,7 @@ function SimbaFacilitatorView({
       {/* Simba's Personal Performance KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="glass rounded-xl p-5 border-l-4 border-l-brand">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">My Teaching Output</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Teaching Output</p>
           <p className="mt-2 font-display text-3xl font-extrabold text-foreground">44 hrs</p>
           <p className="mt-1.5 text-[11px] font-semibold text-brand">20 sessions logged (Term 3)</p>
         </div>
@@ -786,7 +982,7 @@ function SimbaFacilitatorView({
         <div className="glass rounded-xl p-5 border-l-4 border-l-accent">
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Educator Rating</p>
           <p className="mt-2 font-display text-3xl font-extrabold text-accent">
-            ⭐ 4.86<span className="text-sm font-normal text-muted-foreground">/5.0</span>
+            4.86<span className="text-sm font-normal text-muted-foreground">/5.0</span>
           </p>
           <p className="mt-1.5 text-[11px] font-semibold text-accent">97.1% positive feedback (Coding Specialist)</p>
         </div>
@@ -800,44 +996,17 @@ function SimbaFacilitatorView({
         <div className="glass rounded-xl p-5 border-l-4 border-l-accent">
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Verified Practical Labs</p>
           <p className="mt-2 font-display text-3xl font-extrabold text-foreground">22 / 24</p>
-          <p className="mt-1.5 text-[11px] font-semibold text-brand">42 1-on-1 coding clinics held</p>
+          <p className="mt-1.5 text-[11px] font-semibold text-brand">42 1-on-1 coding clinics</p>
         </div>
       </div>
 
-      {/* Resident Hub Lab Info Banner */}
-      <div className="rounded-2xl border border-brand/25 bg-brand/5 p-4.5 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-xl bg-brand text-brand-foreground shadow-xs">
-              <Building2 className="size-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-display text-base font-bold text-foreground">
-                  Resident Hub: Kuwadzana Hub Lab
-                </h3>
-                <span className="rounded-full bg-brand/20 px-2.5 py-0.5 text-[10px] font-bold text-brand">
-                  Coordinator: Simba
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                30 Dell OptiPlex PCs + Epson Projector · Dedicated Fiber (50 Mbps) + Local Ka-Lite LMS · Backup Generator.
-              </p>
-            </div>
-          </div>
+      {/* Quarterly Lab Hardware & Solar Audit Card for Kuwadzana */}
+      {kuwadzanaAudit && (
+        <LabAssetAndSolarAuditCard audit={kuwadzanaAudit} onOpenModal={onOpenAuditModal} />
+      )}
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 bg-card px-3 py-1 text-xs font-bold text-brand">
-              <CheckCircle2 className="size-3.5" />
-              Scratch 3.0 & Python IDEs Ready
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Schedule & Cohorts Grid */}
+      {/* Timetable & Cohorts */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        {/* Simba's Scheduled Sessions */}
         <div className="glass rounded-xl p-5 lg:col-span-2">
           <div className="flex items-center justify-between pb-3 border-b border-border/70">
             <div>
@@ -884,7 +1053,6 @@ function SimbaFacilitatorView({
           </div>
         </div>
 
-        {/* Assigned Classes */}
         <div className="glass rounded-xl p-5 space-y-4">
           <h2 className="font-display text-sm font-bold text-foreground">Assigned Kuwadzana Classes</h2>
           <div className="space-y-3">
@@ -911,6 +1079,299 @@ function SimbaFacilitatorView({
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   MODAL: RECORD & UPDATE QUARTERLY HARDWARE & SOLAR AUDIT
+   Allows recording initial allocation, continuous quarterly counts, faults, and solar health
+   ========================================================================= */
+function QuarterlyAuditModal({
+  audit,
+  onClose,
+  onSave,
+}: {
+  audit: LabQuarterlyAudit;
+  onClose: () => void;
+  onSave: (audit: LabQuarterlyAudit) => void;
+}) {
+  const [form, setForm] = useState<LabQuarterlyAudit>({ ...audit });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onSave(form);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xl my-8">
+        <div className="flex items-center justify-between pb-3 border-b border-border/70">
+          <div>
+            <h2 className="font-display text-base font-bold text-foreground">
+              Quarterly Lab Hardware & Solar Audit
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {form.center} · Audit Quarter: {form.quarter}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                Audit Quarter
+              </label>
+              <select
+                value={form.quarter}
+                onChange={(e) => setForm({ ...form, quarter: e.target.value })}
+                className="field text-xs font-semibold"
+              >
+                <option value="Q3 2026">Q3 2026</option>
+                <option value="Q4 2026">Q4 2026</option>
+                <option value="Q1 2027">Q1 2027</option>
+                <option value="Q2 2027">Q2 2027</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                Audit Date
+              </label>
+              <input
+                type="text"
+                value={form.auditDate}
+                onChange={(e) => setForm({ ...form, auditDate: e.target.value })}
+                className="field text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                Auditor Name
+              </label>
+              <input
+                type="text"
+                value={form.auditor}
+                onChange={(e) => setForm({ ...form, auditor: e.target.value })}
+                className="field text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          {/* Section: Laptop Inventory */}
+          <div className="rounded-xl border border-border/70 bg-muted/20 p-3.5 space-y-3">
+            <h3 className="font-display text-xs font-bold uppercase tracking-wider text-brand flex items-center gap-1.5">
+              <Laptop className="size-3.5" />
+              Laptops Asset Tracking
+            </h3>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Initial Allocation
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.initialLaptops}
+                  onChange={(e) => setForm({ ...form, initialLaptops: Number(e.target.value) })}
+                  className="field text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Functional Laptops
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.functionalLaptops}
+                  onChange={(e) => setForm({ ...form, functionalLaptops: Number(e.target.value) })}
+                  className="field text-xs font-bold text-accent"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Faulty Laptops
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.faultyLaptops}
+                  onChange={(e) => setForm({ ...form, faultyLaptops: Number(e.target.value) })}
+                  className="field text-xs font-bold text-amber"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Missing Laptops
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.missingLaptops}
+                  onChange={(e) => setForm({ ...form, missingLaptops: Number(e.target.value) })}
+                  className="field text-xs font-bold text-destructive"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                Laptop Fault Details (screens, keyboards, operating system, boot issues)
+              </label>
+              <textarea
+                rows={2}
+                value={form.laptopFaultDetails}
+                onChange={(e) => setForm({ ...form, laptopFaultDetails: e.target.value })}
+                className="field text-xs"
+                placeholder="Describe any faulty laptops and required repairs..."
+              />
+            </div>
+          </div>
+
+          {/* Section: Chargers */}
+          <div className="rounded-xl border border-border/70 bg-muted/20 p-3.5 space-y-3">
+            <h3 className="font-display text-xs font-bold uppercase tracking-wider text-brand flex items-center gap-1.5">
+              <Plug className="size-3.5" />
+              Power Adapters & Chargers
+            </h3>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Working Chargers
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.functionalChargers}
+                  onChange={(e) => setForm({ ...form, functionalChargers: Number(e.target.value) })}
+                  className="field text-xs font-bold text-accent"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Faulty Chargers
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.faultyChargers}
+                  onChange={(e) => setForm({ ...form, faultyChargers: Number(e.target.value) })}
+                  className="field text-xs font-bold text-amber"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Missing Chargers
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.missingChargers}
+                  onChange={(e) => setForm({ ...form, missingChargers: Number(e.target.value) })}
+                  className="field text-xs font-bold text-destructive"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Solar Performance */}
+          <div className="rounded-xl border border-border/70 bg-muted/20 p-3.5 space-y-3">
+            <h3 className="font-display text-xs font-bold uppercase tracking-wider text-amber flex items-center gap-1.5">
+              <Sun className="size-3.5" />
+              Solar & Energy System Performance
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Inverter State
+                </label>
+                <select
+                  value={form.inverterStatus}
+                  onChange={(e) => setForm({ ...form, inverterStatus: e.target.value as any })}
+                  className="field text-xs font-semibold"
+                >
+                  <option value="Optimal">Optimal</option>
+                  <option value="Operational">Operational</option>
+                  <option value="Warning">Warning (Tripped)</option>
+                  <option value="Faulty">Faulty (Needs Service)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Battery Health (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={form.batteryHealthPct}
+                  onChange={(e) => setForm({ ...form, batteryHealthPct: Number(e.target.value) })}
+                  className="field text-xs font-bold text-accent"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                  Backup Runtime (hours)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={form.backupRuntimeHours}
+                  onChange={(e) => setForm({ ...form, backupRuntimeHours: Number(e.target.value) })}
+                  className="field text-xs font-bold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                Solar Faults & Maintenance Log
+              </label>
+              <textarea
+                rows={2}
+                value={form.solarFaults}
+                onChange={(e) => setForm({ ...form, solarFaults: e.target.value })}
+                className="field text-xs"
+                placeholder="Log any inverter trips, battery alerts, panel cleaning or repairs..."
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted"
+            >
+              Cancel
+            </button>
+            <Button type="submit" size="sm" icon={<Check className="size-3.5" />}>
+              Save Quarterly Audit
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
