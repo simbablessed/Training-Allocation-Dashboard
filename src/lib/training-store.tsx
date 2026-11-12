@@ -116,14 +116,21 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
   const [activePersona, setActivePersona] = useState<PersonaType>("Anesu Muchirewesi");
 
   useEffect(() => {
-    if (auth.userName?.toLowerCase().includes("diana")) {
+    const nameLower = (auth.userName || "").toLowerCase();
+    const emailLower = (auth.userEmail || "").toLowerCase();
+
+    if (nameLower.includes("diana") || emailLower.includes("diana")) {
       setActivePersona("Diana Dumbu");
-    } else if (auth.userName?.toLowerCase().includes("simba")) {
+    } else if (nameLower.includes("simba") || emailLower.includes("simba")) {
       setActivePersona("Simba");
-    } else if (auth.userName?.toLowerCase().includes("anesu")) {
+    } else if (
+      nameLower.includes("anesu") ||
+      emailLower.includes("anesu") ||
+      auth.userRole === "Teacher Training Manager"
+    ) {
       setActivePersona("Anesu Muchirewesi");
     }
-  }, [auth.userName]);
+  }, [auth.userName, auth.userEmail, auth.userRole]);
 
   const [cohortRows, setCohorts] = useState<Cohort[]>(initial.cohorts);
   const [sessionRows, setSessions] = useState<Session[]>(initial.sessions);

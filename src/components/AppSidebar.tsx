@@ -9,11 +9,15 @@ import {
   Settings,
   UsersRound,
   ShieldCheck,
+  LogOut,
 } from "lucide-react";
+import { useAppAuth } from "@/lib/clerk/provider";
+import { useClerk } from "@clerk/clerk-react";
 
 const sections = [
   {
     label: "Executive Oversight",
+    managerOnly: true,
     links: [
       { to: "/oversight", label: "Manager oversight", icon: ShieldCheck },
     ],
@@ -38,6 +42,18 @@ const navClass =
   "flex min-w-0 items-center gap-3 rounded-md px-3 py-2.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand";
 
 export function AppSidebar() {
+  const { userRole, userName, userEmail, userLab } = useAppAuth();
+  const { signOut } = useClerk();
+
+  const isManager =
+    userRole === "Teacher Training Manager" ||
+    userName?.toLowerCase().includes("anesu") ||
+    userEmail?.toLowerCase().includes("anesu");
+
+  const visibleSections = sections.filter(
+    (s) => !(s as any).managerOnly || isManager
+  );
+
   return (
     <>
     <aside className="sticky top-[72px] hidden h-[calc(100vh-72px)] w-64 shrink-0 self-start overflow-y-auto border-r border-border bg-card md:flex md:flex-col">
@@ -52,7 +68,7 @@ export function AppSidebar() {
           <span className="truncate">Dashboard</span>
         </Link>
 
-        {sections.map((section) => (
+        {visibleSections.map((section) => (
           <section key={section.label} className="mt-6">
             <div className="mb-2 flex items-center justify-between px-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -75,14 +91,34 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-border p-3">
-        <div className="mb-1 flex items-center gap-3 px-3 py-2 text-[13px] font-medium text-muted-foreground">
-          <GraduationCap className="size-4 shrink-0" />
-          <span>Educator Training MIS</span>
+      <div className="border-t border-border p-3 space-y-2">
+        {/* User Identity and Fast Account Switcher */}
+        <div className="rounded-lg bg-muted/40 border border-border/70 p-2.5">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">
+              {isManager ? "Manager" : "Facilitator"}
+            </span>
+            <button
+              type="button"
+              onClick={() => signOut()}
+              title="Sign out / switch account"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors shrink-0"
+            >
+              <LogOut className="size-3" />
+              <span>Switch</span>
+            </button>
+          </div>
+          <p className="mt-1 font-semibold text-foreground text-xs truncate">
+            {userName || "Signed in"}
+          </p>
+          <p className="text-[10px] text-muted-foreground truncate">
+            {userLab || userRole}
+          </p>
         </div>
+
         <Link to="/settings" className={navClass} activeProps={{ className: "bg-secondary text-primary" }}>
           <Settings className="size-4 shrink-0" />
-          <span>Programme settings</span>
+          <span>Profile & Settings</span>
         </Link>
       </div>
     </aside>

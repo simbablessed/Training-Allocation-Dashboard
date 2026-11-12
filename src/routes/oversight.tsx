@@ -1,7 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useClerk } from "@clerk/clerk-react";
 import { useMemo, useState } from "react";
 import {
   ShieldCheck,
+  ShieldAlert,
+  ArrowLeft,
+  LogOut,
   TrendingUp,
   Building2,
   Users,
@@ -137,7 +141,64 @@ const DEFAULT_DIRECTIVES = [
 
 function ManagerOversightPage() {
   const { cohorts, sessions, settings, labAudits } = useTraining();
-  const { userName, userRole } = useAppAuth();
+  const { userName, userRole, userLab, userEmail } = useAppAuth();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
+
+  const isManager =
+    userRole === "Teacher Training Manager" ||
+    userName?.toLowerCase().includes("anesu") ||
+    userEmail?.toLowerCase().includes("anesu");
+
+  if (!isManager) {
+    return (
+      <div className="mx-auto max-w-xl py-12 px-4">
+        <div className="rounded-2xl border border-destructive/30 bg-card p-6 sm:p-8 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="rounded-xl bg-destructive/10 p-3 text-destructive shrink-0">
+              <ShieldAlert className="size-7" />
+            </div>
+            <div className="space-y-2">
+              <span className="inline-block rounded bg-destructive/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-destructive">
+                Access Restricted • Manager Privileges Required
+              </span>
+              <h1 className="font-display text-lg font-bold text-foreground">
+                Manager Oversight is Restricted
+              </h1>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You are currently signed in as <strong className="text-foreground">{userName || "Resident Facilitator"}</strong> ({userRole || "Resident Facilitator"}{userLab ? ` · ${userLab}` : ""}).
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                The Executive Oversight Cockpit contains high-level hub performance comparisons, facilitator evaluations, and management directive controls reserved exclusively for the Teacher Training Manager (<strong className="text-foreground">Anesu Muchirewesi</strong>).
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                To view or test manager oversight, please log out and sign in with the Manager account.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2.5 pt-4 border-t border-border">
+            <Button
+              variant="default"
+              size="sm"
+              icon={<ArrowLeft className="size-3.5" />}
+              onClick={() => navigate({ to: "/" })}
+            >
+              Return to Facilitator Dashboard
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<LogOut className="size-3.5" />}
+              onClick={() => signOut()}
+            >
+              Sign Out & Switch to Manager Account
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const [activeTab, setActiveTab] = useState<TabType>("labs");
   const [directives, setDirectives] = useState(DEFAULT_DIRECTIVES);

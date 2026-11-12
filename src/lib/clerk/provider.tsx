@@ -30,20 +30,43 @@ function InnerAuthProvider({ children }: { children: React.ReactNode }) {
   const isLoaded = Boolean(authLoaded && (isSignedIn ? userLoaded : true));
   const email = user?.primaryEmailAddress?.emailAddress;
   const fullName = user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "";
+  const emailLower = (email || "").toLowerCase().trim();
 
   // Derive role and resident lab based on test accounts or email
   const matchedAccount = TEST_ACCOUNTS.find(
-    (a) => a.email.toLowerCase() === email?.toLowerCase()
+    (a) =>
+      a.email.toLowerCase() === emailLower ||
+      (fullName && fullName.toLowerCase().includes(a.name.toLowerCase().split(" ")[0]))
   );
-  const role = matchedAccount ? matchedAccount.role : "Teacher Training Manager";
-  const lab = matchedAccount ? (matchedAccount as any).lab : "Warren Park Hub Lab (Dual-Role)";
+
+  let role = "Resident Facilitator";
+  let lab = "Kuwadzana Hub Lab";
+  let fallbackName = "Simba";
+
+  if (emailLower.includes("anesu") || fullName.toLowerCase().includes("anesu")) {
+    role = "Teacher Training Manager";
+    lab = "Warren Park Hub Lab (Dual-Role)";
+    fallbackName = "Anesu Muchirewesi";
+  } else if (emailLower.includes("diana") || fullName.toLowerCase().includes("diana")) {
+    role = "Resident Facilitator";
+    lab = "Chitungwiza Hub Lab";
+    fallbackName = "Diana Dumbu";
+  } else if (emailLower.includes("simba") || fullName.toLowerCase().includes("simba")) {
+    role = "Resident Facilitator";
+    lab = "Kuwadzana Hub Lab";
+    fallbackName = "Simba";
+  } else if (matchedAccount) {
+    role = matchedAccount.role;
+    lab = (matchedAccount as any).lab;
+    fallbackName = matchedAccount.name;
+  }
 
   const value: AppAuthContextType = {
     userId: userId ?? null,
     isSignedIn: Boolean(isSignedIn),
     isLoaded,
     userEmail: email,
-    userName: fullName || (matchedAccount ? matchedAccount.name : "Anesu Muchirewesi"),
+    userName: fullName || fallbackName,
     userPhoto: user?.imageUrl,
     userRole: role,
     userLab: lab,

@@ -8,7 +8,7 @@ import { useAppAuth } from "@/lib/clerk/provider";
 
 const nav = [
   { to: "/", label: "Overview" },
-  { to: "/oversight", label: "Oversight" },
+  { to: "/oversight", label: "Oversight", managerOnly: true },
   { to: "/schedule", label: "Schedule" },
   { to: "/cohorts", label: "Classes" },
   { to: "/assessments", label: "Assessments" },
@@ -17,22 +17,22 @@ const nav = [
 
 export function AppHeader() {
   const { settings, sessions, cohorts, isNeonConnected, isSyncing, refreshFromDatabase, activePersona, setActivePersona } = useTraining();
-  const { userEmail, userName, userRole, userPhoto } = useAppAuth();
+  const { userEmail, userName, userRole, userLab, userPhoto } = useAppAuth();
   const { signOut } = useClerk();
   const [panel, setPanel] = useState<"search" | "notifications" | "profile" | null>(null);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
-  const activeRole =
-    activePersona === "Anesu Muchirewesi"
-      ? "Teacher Training Manager (Warren Park Lead)"
-      : activePersona === "Diana Dumbu"
-        ? "Resident Facilitator (Chitungwiza Hub Lab)"
-        : "Resident Facilitator (Kuwadzana Hub Lab)";
+  const isManager =
+    userRole === "Teacher Training Manager" ||
+    userName?.toLowerCase().includes("anesu") ||
+    userEmail?.toLowerCase().includes("anesu");
 
-  const displayName = activePersona || userName || settings.name;
-  const displayRole = activeRole;
+  const displayName = userName || activePersona || (isManager ? "Anesu Muchirewesi" : "Resident Facilitator");
+  const displayRole = userRole || (isManager ? "Teacher Training Manager" : "Resident Facilitator");
   const avatarUrl = userPhoto || settings.photo;
+
+  const visibleNav = nav.filter((item) => !(item as any).managerOnly || isManager);
 
   const conflicts = sessions.filter((s) => s.status === "Conflict");
   const atRisk = cohorts.filter((c) => c.attendance < settings.attendanceTarget || c.post < settings.scoreTarget);
@@ -94,7 +94,7 @@ export function AppHeader() {
       </div>
 
       <nav className="hidden items-center gap-2 text-[13px] font-medium">
-        {nav.map((item) => (
+        {visibleNav.map((item) => (
           <Link
             key={item.to}
             to={item.to}
@@ -235,52 +235,44 @@ export function AppHeader() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
                     <p className="truncate text-xs text-muted-foreground">{userEmail || "Signed in with Clerk"}</p>
-                    <span className="mt-0.5 inline-block rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
-                      {displayRole}
-                    </span>
+                    <div className="mt-1 flex flex-wrap items-center gap-1">
+                      <span className="inline-block rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                        {isManager ? "Teacher Training Manager" : "Resident Facilitator"}
+                      </span>
+                      {userLab && (
+                        <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground border border-border truncate max-w-[170px]">
+                          {userLab}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Role Switcher in Profile Menu */}
-              <div className="rounded-xl border border-border/80 bg-background p-2.5 space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block px-1">
-                  Active Workspace Role
-                </span>
-                <div className="grid grid-cols-1 gap-1">
-                  {[
-                    { name: "Anesu Muchirewesi", label: "Anesu Muchirewesi", sub: "Training Manager (Warren Park Lead)" },
-                    { name: "Diana Dumbu", label: "Diana Dumbu", sub: "Resident Facilitator (Chitungwiza)" },
-                    { name: "Simba", label: "Simba", sub: "Resident Facilitator (Kuwadzana)" },
-                  ].map((p) => (
-                    <button
-                      key={p.name}
-                      type="button"
-                      onClick={() => {
-                        setActivePersona(p.name as any);
-                        setPanel(null);
-                        navigate({ to: "/" });
-                      }}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
-                        activePersona === p.name
-                          ? "bg-brand text-brand-foreground shadow-xs"
-                          : "text-foreground hover:bg-muted"
-                      }`}
-                    >
-                      <div>
-                        <p className="leading-tight">{p.label}</p>
-                        <p className={`text-[10px] font-normal ${activePersona === p.name ? "text-brand-foreground/80" : "text-muted-foreground"}`}>
-                          {p.sub}
-                        </p>
-                      </div>
-                      {activePersona === p.name && (
-                        <span className="rounded bg-brand-foreground/20 px-1.5 py-0.5 text-[10px] font-bold shrink-0">
-                          Active
-                        </span>
-                      )}
-                    </button>
-                  ))}
+              {/* Fast Account Switcher Box */}
+              <div className="rounded-xl border border-border/80 bg-background p-3 space-y-2">
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Switch Role / Account</p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Sign out to switch between Facilitator (Kuwadzana, Chitungwiza) and Manager (Warren Park) accounts.
+                  </p>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-center text-xs font-semibold gap-1.5"
+                  onClick={async () => {
+                    setPanel(null);
+                    try {
+                      await signOut();
+                    } catch {
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  <LogOut className="size-3.5" />
+                  <span>Sign out & Switch Account</span>
+                </Button>
               </div>
 
               {/* Stack status summary */}
@@ -302,17 +294,19 @@ export function AppHeader() {
               </div>
 
               <div className="space-y-1 pt-1">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs font-semibold text-brand border-brand/30 hover:bg-brand/10"
-                  icon={<ShieldCheck className="size-3.5 text-brand" />}
-                  onClick={() => {
-                    navigate({ to: "/oversight" });
-                    setPanel(null);
-                  }}
-                >
-                  Manager oversight cockpit
-                </Button>
+                {isManager && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-xs font-semibold text-brand border-brand/30 hover:bg-brand/10"
+                    icon={<ShieldCheck className="size-3.5 text-brand" />}
+                    onClick={() => {
+                      navigate({ to: "/oversight" });
+                      setPanel(null);
+                    }}
+                  >
+                    Manager oversight cockpit
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-xs"
@@ -322,18 +316,7 @@ export function AppHeader() {
                     setPanel(null);
                   }}
                 >
-                  Edit profile & targets
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-xs"
-                  icon={<Settings className="size-3.5" />}
-                  onClick={() => {
-                    navigate({ to: "/settings" });
-                    setPanel(null);
-                  }}
-                >
-                  Programme settings
+                  Edit profile & settings
                 </Button>
                 <Button
                   variant="destructive"
@@ -343,10 +326,9 @@ export function AppHeader() {
                     setPanel(null);
                     try {
                       await signOut();
-                    } catch (e) {
-                      console.warn("SignOut:", e);
+                    } catch {
+                      window.location.reload();
                     }
-                    window.location.href = "/";
                   }}
                 >
                   Sign out

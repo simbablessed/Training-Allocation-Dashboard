@@ -1,6 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Camera, Check, Cloud, Database, KeyRound, Loader2, RotateCcw, Save, ShieldCheck, X } from "lucide-react";
+import { useClerk } from "@clerk/clerk-react";
+import {
+  Camera,
+  Check,
+  Cloud,
+  Database,
+  KeyRound,
+  Loader2,
+  Lock,
+  LogOut,
+  RotateCcw,
+  Save,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import { PageHeading } from "@/components/PageHeading";
 import { Button } from "@/components/ui/button";
 import { useTraining } from "@/lib/training-store";
@@ -29,27 +43,48 @@ function SettingsPage() {
     isNeonConnected,
     isSyncing,
   } = useTraining();
-  const { userEmail, userName, userRole } = useAppAuth();
+  const { userEmail, userName, userRole, userLab, userPhoto } = useAppAuth();
+  const { signOut } = useClerk();
+
+  const isManager =
+    userRole === "Teacher Training Manager" ||
+    userName?.toLowerCase().includes("anesu") ||
+    userEmail?.toLowerCase().includes("anesu");
 
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Authenticated user's identity
+  const currentName = userName || (isManager ? settings.name : "Resident Facilitator");
+  const currentRole = userRole || (isManager ? settings.role : "Resident Facilitator");
+  const currentLab = userLab || (isManager ? "Warren Park Hub Lab (Dual-Role)" : "Hub Lab");
+  const currentPhoto = userPhoto || settings.photo;
+
   async function save(form: FormData) {
     const name = String(form.get("name")).trim();
     const role = String(form.get("role")).trim();
-    const attendanceTarget = Number(form.get("attendanceTarget"));
-    const scoreTarget = Number(form.get("scoreTarget"));
-    const completionTarget = Number(form.get("completionTarget"));
 
-    await updateProgrammeSettings({
-      name,
-      role,
-      attendanceTarget,
-      scoreTarget,
-      completionTarget,
-    });
+    if (isManager) {
+      const attendanceTarget = Number(form.get("attendanceTarget"));
+      const scoreTarget = Number(form.get("scoreTarget"));
+      const completionTarget = Number(form.get("completionTarget"));
+
+      await updateProgrammeSettings({
+        name,
+        role,
+        attendanceTarget,
+        scoreTarget,
+        completionTarget,
+      });
+    } else {
+      // Facilitator profile update
+      await updateProgrammeSettings({
+        name,
+        role,
+      });
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 4000);
   }
@@ -75,15 +110,12 @@ function SettingsPage() {
     }
   }
 
-  const currentName = settings.name || userName || "Anesu Muchirewesi";
-  const currentRole = settings.role || userRole || "Program Manager";
-
   return (
     <>
       <PageHeading
         eyebrow="Your workspace"
-        title="Programme Settings"
-        meta="Profile, targets & live cloud infrastructure"
+        title="Account & Programme Settings"
+        meta="User profile, institutional targets & live cloud infrastructure"
       />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
@@ -96,19 +128,41 @@ function SettingsPage() {
           className="glass rounded-xl p-5 sm:p-7 shadow-xs"
         >
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-lg font-bold">Profile</h2>
+            <h2 className="font-display text-lg font-bold">User Profile</h2>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-xs text-muted-foreground">
               <span className={`size-2 rounded-full ${isNeonConnected ? "bg-accent" : "bg-amber"}`} />
-              {isNeonConnected ? "Syncs to Neon" : "Offline mode"}
+              {isNeonConnected ? "Connected" : "Offline mode"}
             </span>
+          </div>
+
+          {/* Quick Sign Out & Switch Account Bar */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border/80 bg-muted/40 p-3.5">
+            <div>
+              <p className="text-xs font-semibold text-foreground">
+                Signed in as <span className="font-bold">{currentName}</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {userEmail || "Clerk Authenticated"} · {currentRole} · {currentLab}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5 shrink-0"
+              onClick={() => signOut()}
+            >
+              <LogOut className="size-3.5" />
+              <span>Sign Out & Switch Account</span>
+            </Button>
           </div>
 
           <div className="mt-5 flex items-center gap-4">
             <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full bg-primary font-display text-xl font-bold text-primary-foreground shadow-xs">
               {uploading ? (
                 <Loader2 className="size-6 animate-spin" />
-              ) : settings.photo ? (
-                <img src={settings.photo} alt="Profile" className="size-full object-cover" />
+              ) : currentPhoto ? (
+                <img src={currentPhoto} alt="Profile" className="size-full object-cover" />
               ) : (
                 currentName
                   .split(/\s+/)
@@ -137,7 +191,7 @@ function SettingsPage() {
               >
                 {uploading ? "Uploading to R2..." : "Upload photo to R2"}
               </Button>
-              {settings.photo && (
+              {currentPhoto && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -164,66 +218,132 @@ function SettingsPage() {
             <label className="text-sm font-semibold">
               Role
               <input
-                className="field mt-1.5"
+                className="field mt-1.5 bg-muted/30"
                 name="role"
                 required
                 defaultValue={currentRole}
+                readOnly={!isManager}
+                title={!isManager ? "Institutional role assigned by administrator" : undefined}
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Account Email
+              <input
+                className="field mt-1.5 bg-muted/50 cursor-not-allowed text-muted-foreground"
+                disabled
+                value={userEmail || "Signed in with Clerk"}
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Assigned Hub Laboratory
+              <input
+                className="field mt-1.5 bg-muted/50 cursor-not-allowed text-muted-foreground"
+                disabled
+                value={currentLab}
               />
             </label>
           </div>
 
-          <h2 className="mt-8 font-display text-lg font-bold">M&E KPI Targets</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Targets configured here calibrate the dashboard status indicators, scorecard checks, and attendance alerts.
-          </p>
+          {/* M&E KPI Targets section: Editable for Manager, Read-only benchmarks for Facilitators */}
+          {isManager ? (
+            <>
+              <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
+                <div>
+                  <h2 className="font-display text-lg font-bold">M&E KPI Targets (Manager Authorization)</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Targets configured here calibrate the dashboard status indicators, scorecard checks, and attendance alerts.
+                  </p>
+                </div>
+                <span className="rounded bg-brand/10 text-brand px-2 py-0.5 text-[11px] font-semibold border border-brand/20">
+                  Manager Edit
+                </span>
+              </div>
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <label className="text-sm font-semibold">
-              Attendance %
-              <input
-                className="field mt-1.5"
-                name="attendanceTarget"
-                type="number"
-                min="0"
-                max="100"
-                required
-                defaultValue={settings.attendanceTarget}
-              />
-            </label>
-            <label className="text-sm font-semibold">
-              Post-test score
-              <input
-                className="field mt-1.5"
-                name="scoreTarget"
-                type="number"
-                min="0"
-                max="100"
-                required
-                defaultValue={settings.scoreTarget}
-              />
-            </label>
-            <label className="text-sm font-semibold">
-              Modules completed
-              <input
-                className="field mt-1.5"
-                name="completionTarget"
-                type="number"
-                min="1"
-                max="8"
-                required
-                defaultValue={settings.completionTarget}
-              />
-            </label>
-          </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <label className="text-sm font-semibold">
+                  Attendance %
+                  <input
+                    className="field mt-1.5"
+                    name="attendanceTarget"
+                    type="number"
+                    min="0"
+                    max="100"
+                    required
+                    defaultValue={settings.attendanceTarget}
+                  />
+                </label>
+                <label className="text-sm font-semibold">
+                  Post-test score
+                  <input
+                    className="field mt-1.5"
+                    name="scoreTarget"
+                    type="number"
+                    min="0"
+                    max="100"
+                    required
+                    defaultValue={settings.scoreTarget}
+                  />
+                </label>
+                <label className="text-sm font-semibold">
+                  Modules completed
+                  <input
+                    className="field mt-1.5"
+                    name="completionTarget"
+                    type="number"
+                    min="1"
+                    max="8"
+                    required
+                    defaultValue={settings.completionTarget}
+                  />
+                </label>
+              </div>
+            </>
+          ) : (
+            <div className="mt-8 rounded-xl border border-border/70 bg-card/60 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display text-sm font-bold flex items-center gap-2">
+                    <ShieldCheck className="size-4 text-brand" />
+                    Institutional M&E Grant Targets
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Benchmarks established and governed by Teacher Training Manager (Anesu Muchirewesi).
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border">
+                  <Lock className="size-3" />
+                  Manager Governed
+                </span>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-border/50 bg-background/50 p-3">
+                  <span className="text-[11px] font-semibold text-muted-foreground">Attendance Target</span>
+                  <p className="mt-1 font-display text-xl font-bold text-foreground">{settings.attendanceTarget}%</p>
+                  <span className="text-[10px] text-muted-foreground">Minimum cohort threshold</span>
+                </div>
+                <div className="rounded-lg border border-border/50 bg-background/50 p-3">
+                  <span className="text-[11px] font-semibold text-muted-foreground">Mastery Score Target</span>
+                  <p className="mt-1 font-display text-xl font-bold text-foreground">{settings.scoreTarget}%</p>
+                  <span className="text-[10px] text-muted-foreground">Competency post-test pass</span>
+                </div>
+                <div className="rounded-lg border border-border/50 bg-background/50 p-3">
+                  <span className="text-[11px] font-semibold text-muted-foreground">Modules Required</span>
+                  <p className="mt-1 font-display text-xl font-bold text-foreground">{settings.completionTarget} of 8</p>
+                  <span className="text-[10px] text-muted-foreground">Cohort certification target</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 flex items-center gap-3">
             <Button type="submit" disabled={isSyncing} icon={<Save className="size-4" />}>
-              {isSyncing ? "Saving to Neon..." : "Save changes"}
+              {isSyncing ? "Saving..." : "Save changes"}
             </Button>
             {saved && (
               <span role="status" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent">
                 <Check className="size-4" />
-                Saved to Neon Postgres
+                Settings saved
               </span>
             )}
           </div>

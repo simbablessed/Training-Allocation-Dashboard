@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useClerk } from "@clerk/clerk-react";
 import { PageHeading } from "@/components/PageHeading";
 import { StatusPill } from "@/components/StatusPill";
 import { kpiTrend, modules, tiers, LAB_CENTERS, type LabQuarterlyAudit } from "@/data/mis";
 import { getKpis, useTraining, type PersonaType } from "@/lib/training-store";
+import { useAppAuth } from "@/lib/clerk/provider";
 import { Button } from "@/components/ui/button";
 import {
   ShieldCheck,
@@ -31,6 +33,7 @@ import {
   Check,
   Activity,
   Layers,
+  LogOut,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -67,6 +70,25 @@ function Dashboard() {
     updateLabAudit,
     addLabAudit,
   } = useTraining();
+  const { userName, userRole, userLab, userEmail } = useAppAuth();
+  const { signOut } = useClerk();
+
+  const isManager =
+    userRole === "Teacher Training Manager" ||
+    userName?.toLowerCase().includes("anesu") ||
+    userEmail?.toLowerCase().includes("anesu");
+
+  const isDiana =
+    userName?.toLowerCase().includes("diana") ||
+    userLab?.toLowerCase().includes("chitungwiza");
+
+  const currentRole = isManager
+    ? "Teacher Training Manager (Warren Park Lead)"
+    : isDiana
+      ? "Resident Facilitator (Chitungwiza Hub Lab)"
+      : "Resident Facilitator (Kuwadzana Hub Lab)";
+
+  const currentName = userName || (isManager ? "Anesu Muchirewesi" : isDiana ? "Diana Dumbu" : "Simba");
 
   const kpis = getKpis(cohorts, bookings, settings);
   const topModules = modules.filter((m) => ["M1", "M3", "M7", "M5", "M8"].includes(m.code));
@@ -90,60 +112,32 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Sleek, Professional Workspace Switcher (Zero Emojis, Native Segmented Control) */}
+      {/* 1. Active Session & Account Indicator with Instant Switch */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/70 pb-4">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="size-2 rounded-full bg-accent animate-pulse" />
-          <span className="font-semibold uppercase tracking-wider text-[11px]">Active Perspective:</span>
-          <span className="font-bold text-foreground">
-            {activePersona === "Anesu Muchirewesi"
-              ? "Training Manager (Warren Park Lead)"
-              : activePersona === "Diana Dumbu"
-                ? "Resident Facilitator (Chitungwiza Hub)"
-                : "Resident Facilitator (Kuwadzana Hub)"}
+          <span className="font-semibold uppercase tracking-wider text-[11px] text-muted-foreground">Signed In As:</span>
+          <span className="font-bold text-foreground text-sm">{currentName}</span>
+          <span className="rounded-md bg-brand/10 text-brand px-2.5 py-0.5 text-xs font-semibold border border-brand/20">
+            {currentRole}
           </span>
+          {userLab && (
+            <span className="rounded-md bg-muted text-muted-foreground px-2 py-0.5 text-xs font-medium border border-border">
+              {userLab}
+            </span>
+          )}
         </div>
 
-        {/* Clean Segmented Pill Buttons */}
-        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-2xs">
-          <button
-            type="button"
-            onClick={() => setActivePersona("Anesu Muchirewesi")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              activePersona === "Anesu Muchirewesi"
-                ? "bg-brand text-brand-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-            }`}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => signOut()}
           >
-            <ShieldCheck className="size-3.5" />
-            <span>Anesu Muchirewesi (Manager)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActivePersona("Diana Dumbu")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              activePersona === "Diana Dumbu"
-                ? "bg-brand text-brand-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-            }`}
-          >
-            <Building2 className="size-3.5" />
-            <span>Diana Dumbu (Chitungwiza)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActivePersona("Simba")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              activePersona === "Simba"
-                ? "bg-brand text-brand-foreground shadow-xs"
-                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-            }`}
-          >
-            <Building2 className="size-3.5" />
-            <span>Simba (Kuwadzana)</span>
-          </button>
+            <LogOut className="size-3.5" />
+            <span>Sign Out / Switch Account</span>
+          </Button>
         </div>
       </div>
 
@@ -164,7 +158,7 @@ function Dashboard() {
       )}
 
       {/* 2. Main Role View */}
-      {activePersona === "Anesu Muchirewesi" ? (
+      {isManager ? (
         <ManagerDashboardView
           kpis={kpis}
           cohorts={cohorts}
@@ -175,7 +169,7 @@ function Dashboard() {
           onOpenAuditModal={(audit) => setEditingAudit(audit)}
           triggerNotice={triggerNotice}
         />
-      ) : activePersona === "Diana Dumbu" ? (
+      ) : isDiana ? (
         <DianaFacilitatorView
           cohorts={cohorts}
           bookings={bookings}
