@@ -136,7 +136,7 @@ function Dashboard() {
             onClick={() => signOut()}
           >
             <LogOut className="size-3.5" />
-            <span>Sign Out / Switch Account</span>
+            <span>Log out</span>
           </Button>
         </div>
       </div>

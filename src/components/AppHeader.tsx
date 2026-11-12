@@ -249,32 +249,6 @@ export function AppHeader() {
                 </div>
               </div>
 
-              {/* Fast Account Switcher Box */}
-              <div className="rounded-xl border border-border/80 bg-background p-3 space-y-2">
-                <div>
-                  <p className="text-xs font-semibold text-foreground">Switch Role / Account</p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Sign out to switch between Facilitator (Kuwadzana, Chitungwiza) and Manager (Warren Park) accounts.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-center text-xs font-semibold gap-1.5"
-                  onClick={async () => {
-                    setPanel(null);
-                    try {
-                      await signOut();
-                    } catch {
-                      window.location.reload();
-                    }
-                  }}
-                >
-                  <LogOut className="size-3.5" />
-                  <span>Sign out & Switch Account</span>
-                </Button>
-              </div>
-
               {/* Stack status summary */}
               <div className="rounded-xl border border-border/70 p-2.5 text-xs text-muted-foreground space-y-1">
                 <div className="flex items-center justify-between">
@@ -331,7 +305,7 @@ export function AppHeader() {
                     }
                   }}
                 >
-                  Sign out
+                  Log out
                 </Button>
               </div>
             </div>

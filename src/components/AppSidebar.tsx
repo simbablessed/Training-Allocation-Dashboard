@@ -92,7 +92,7 @@ export function AppSidebar() {
       </nav>
 
       <div className="border-t border-border p-3 space-y-2">
-        {/* User Identity and Fast Account Switcher */}
+        {/* User Identity and Logout */}
         <div className="rounded-lg bg-muted/40 border border-border/70 p-2.5">
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">
@@ -101,11 +101,11 @@ export function AppSidebar() {
             <button
               type="button"
               onClick={() => signOut()}
-              title="Sign out / switch account"
+              title="Log out"
               className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors shrink-0"
             >
               <LogOut className="size-3" />
-              <span>Switch</span>
+              <span>Log out</span>
             </button>
           </div>
           <p className="mt-1 font-semibold text-foreground text-xs truncate">
